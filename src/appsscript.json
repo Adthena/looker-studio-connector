@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "libraries": []
+  },
+  "timeZone": "Europe/London",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "dataStudio": {
+    "name": "Adthena",
+    "logoUrl": "https://s3.eu-west-1.amazonaws.com/adthena.public/adthena64.png",
+    "company": "Adthena Ltd.",
+    "companyUrl": "https://www.adthena.com/",
+    "addonUrl": "https://github.com/Adthena/looker-studio-connector/blob/main/README.md",
+    "supportUrl": "https://github.com/Adthena/looker-studio-connector/issues",
+    "description": "Get Adthena data into Looker Studio.",
+    "sources": [
+      "ADTHENA"
+    ],
+    "templates": {
+      "default": "54619af1-6df3-4d0c-ba85-bef63db1c606"
+    }
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/script.external_request"
+  ]
+}
