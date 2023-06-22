@@ -2,6 +2,7 @@ var cc = DataStudioApp.createCommunityConnector();
 
 const TREND = 'trend';
 const SHARE = 'share';
+const ST_DETAIL = 'search_term_detail';
 const TREND_OPTIONS = [
   ['Share of Clicks', 'share-of-clicks-trend'],
   ['Share of Spend', 'share-of-spend-trend'],
@@ -12,6 +13,9 @@ const TREND_OPTIONS = [
 const SHARE_OPTIONS = [
   ['Market Share', 'market-share']
 ];
+const SEARCH_TERM_DETAIL_OPTIONS = [
+  ['Search Term Detail', 'search-term-detail']
+];
 
 function getOptionsForDatasetType(datasetType) {
   switch (datasetType) {
@@ -19,6 +23,8 @@ function getOptionsForDatasetType(datasetType) {
       return SHARE_OPTIONS;
     case TREND:
       return TREND_OPTIONS;
+    case ST_DETAIL:
+      return SEARCH_TERM_DETAIL_OPTIONS;
     default:
       cc.newUserError()
         .setText('Please choose a valid dataset type.')
@@ -91,10 +97,11 @@ function getConfig(request) {
     .newSelectSingle()
     .setId('datasetType')
     .setName('Dataset')
-    .setHelpText('Choose your dataset first. Market Trends provides trending data across time. Market Share provides aggregated results over time.')
+    .setHelpText('Choose your dataset first.')
     .setIsDynamic(true)
     .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND))
-    .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE));
+    .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
+    .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
@@ -126,31 +133,31 @@ function getMarketShareFields() {
     .setType(types.TEXT);
 
   fields
-    .newDimension()
+    .newMetric()
     .setId('searchTerms')
     .setName('Search Terms')
     .setType(types.NUMBER);
 
   fields
-    .newDimension()
+    .newMetric()
     .setId('estimatedImpressions')
     .setName('Estimated Impressions')
     .setType(types.NUMBER);
 
   fields
-    .newDimension()
+    .newMetric()
     .setId('averagePosition')
     .setName('Average Position')
     .setType(types.NUMBER);
 
   fields
-    .newDimension()
+    .newMetric()
     .setId('shareOfClicks')
     .setName('Share of Clicks')
     .setType(types.NUMBER);
 
   fields
-    .newDimension()
+    .newMetric()
     .setId('shareOfSpend')
     .setName('Share of Spend')
     .setType(types.NUMBER);
@@ -187,6 +194,62 @@ function getMarketTrendsFields() {
   return fields;
 }
 
+function getSearchTermDetailFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('searchTerm')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('competitors')
+    .setName('Competitors')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('estimatedImpressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('estimatedClicks')
+    .setName('Estimated Clicks')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('averagePosition')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newDimension()
+    .setId('topCompetitor')
+    .setName('Top Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('minCpc')
+    .setName('Min CPC')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('maxCpc')
+    .setName('Max CPC')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
   var fields = null;
@@ -196,6 +259,9 @@ function getFields(request) {
       break;
     case SHARE:
       fields = getMarketShareFields();
+      break;
+    case ST_DETAIL:
+      fields = getSearchTermDetailFields();
       break;
     default:
       cc.newUserError()
@@ -332,20 +398,32 @@ function getMappedData(outer, inner, requestedField) {
   switch (requestedField.getId()) {
     case 'competitor':
       return outer.Competitor;
+    case 'topCompetitor':
+      return outer.TopCompetitor;
+    case 'searchTerm':
+      return outer.SearchTerm;
     case 'date':
       return inner.Date.replaceAll('-', '');
     case 'value':
       return inner.Value;
+    case 'competitors':
+      return outer.Competitors;
     case 'searchTerms':
       return outer.SearchTerms;
     case 'estimatedImpressions':
       return outer.EstimatedImpressions;
+    case 'estimatedClicks':
+      return outer.EstimatedClicks;
     case 'averagePosition':
       return outer.AveragePosition;
     case 'shareOfClicks':
       return parseFloat(outer.ShareOfClicks) / 100;
     case 'shareOfSpend':
       return parseFloat(outer.ShareOfSpend) / 100;
+    case 'minCpc':
+      return outer.MinCPC;
+    case 'maxCpc':
+      return outer.MaxCPC;
     default:
       return '';
   }
