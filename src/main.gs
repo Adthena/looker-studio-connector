@@ -1,43 +1,5 @@
 var cc = DataStudioApp.createCommunityConnector();
 
-const TREND = 'trend';
-const SHARE = 'share';
-const ST_DETAIL = 'search_term_detail';
-const TOP_ADS = 'top_ads';
-const TREND_OPTIONS = [
-  ['Share of Clicks', 'share-of-clicks-trend'],
-  ['Share of Spend', 'share-of-spend-trend'],
-  ['Share of Impressions', 'impression-share-trend'],
-  ['Average Position', 'average-position-trend'],
-  ['Average CPC', 'average-cpc-trend']
-];
-const SHARE_OPTIONS = [
-  ['Market Share', 'market-share']
-];
-const SEARCH_TERM_DETAIL_OPTIONS = [
-  ['Search Term Detail', 'search-term-detail']
-];
-const TOP_ADS_OPTIONS = [
-  ['Top Adverts', 'top-adverts']
-];
-
-function getOptionsForDatasetType(datasetType) {
-  switch (datasetType) {
-    case SHARE:
-      return SHARE_OPTIONS;
-    case TREND:
-      return TREND_OPTIONS;
-    case ST_DETAIL:
-      return SEARCH_TERM_DETAIL_OPTIONS;
-    case TOP_ADS:
-      return TOP_ADS_OPTIONS;
-    default:
-      cc.newUserError()
-        .setText('Please choose a valid dataset type.')
-        .throwException();
-  }
-}
-
 /**
  * Get a configuration for the data connector. Here the user can add their account id and API key for interaction with the API.
  */
@@ -120,7 +82,7 @@ function getConfig(request) {
       .setName('API Endpoint')
       .setHelpText('The API endpoint gives you a choice of what data to pull into your report.');
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
-    endpointOptions.forEach(labelAndValue => endpoint.addOption(config.newOptionBuilder().setLabel(labelAndValue[0]).setValue(labelAndValue[1])));
+    endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.endpoint)));
   }
 
   config.setDateRangeRequired(true);
