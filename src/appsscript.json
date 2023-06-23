@@ -17,10 +17,8 @@
       "ADTHENA"
     ],
     "templates": {
-      "default": "257d5bb6-d895-466b-9632-7f1a762345c5"
+      "default": "54619af1-6df3-4d0c-ba85-bef63db1c606"
     }
   },
-  "oauthScopes": [
-    "https://www.googleapis.com/auth/script.external_request"
-  ]
+  "oauthScopes": []
 }
