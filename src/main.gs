@@ -3,6 +3,7 @@ var cc = DataStudioApp.createCommunityConnector();
 const TREND = 'trend';
 const SHARE = 'share';
 const ST_DETAIL = 'search_term_detail';
+const TOP_ADS = 'top_ads';
 const TREND_OPTIONS = [
   ['Share of Clicks', 'share-of-clicks-trend'],
   ['Share of Spend', 'share-of-spend-trend'],
@@ -16,6 +17,9 @@ const SHARE_OPTIONS = [
 const SEARCH_TERM_DETAIL_OPTIONS = [
   ['Search Term Detail', 'search-term-detail']
 ];
+const TOP_ADS_OPTIONS = [
+  ['Top Adverts', 'top-adverts']
+];
 
 function getOptionsForDatasetType(datasetType) {
   switch (datasetType) {
@@ -25,6 +29,8 @@ function getOptionsForDatasetType(datasetType) {
       return TREND_OPTIONS;
     case ST_DETAIL:
       return SEARCH_TERM_DETAIL_OPTIONS;
+    case TOP_ADS:
+      return TOP_ADS_OPTIONS;
     default:
       cc.newUserError()
         .setText('Please choose a valid dataset type.')
@@ -101,7 +107,8 @@ function getConfig(request) {
     .setIsDynamic(true)
     .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
-    .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL));
+    .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
+    .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
@@ -250,6 +257,92 @@ function getSearchTermDetailFields() {
   return fields;
 }
 
+function getTopAdsFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('adId')
+    .setName('Ad ID')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('title')
+    .setName('Title')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('description')
+    .setName('Description')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('displayUrl')
+    .setName('Display URL')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('estimatedImpressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('averagePosition')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('bestPosition')
+    .setName('Best Position')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('searchTerms')
+    .setName('Search Terms')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('frequency')
+    .setName('Frequency')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('displayLength')
+    .setName('Display Length')
+    .setType(types.NUMBER);
+
+  fields
+    .newDimension()
+    .setId('firstSeen')
+    .setName('First Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('lastSeen')
+    .setName('Last Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
   var fields = null;
@@ -262,6 +355,9 @@ function getFields(request) {
       break;
     case ST_DETAIL:
       fields = getSearchTermDetailFields();
+      break;
+    case TOP_ADS:
+      fields = getTopAdsFields();
       break;
     default:
       cc.newUserError()
@@ -395,6 +491,17 @@ function setInCache(apiResponse, cache) {
 }
 
 function getMappedData(outer, inner, requestedField) {
+  /**
+ * "AdId": "20c340ec-7c42-4972-bc96-99149c80f023",
+  "Title": "First ad title",
+  "Description": "First ad Description",
+  "DisplayUrl": "www.competitor1.com/ad",
+  "BestPosition": "T1",
+  "Frequency": "86.39%",
+  "DisplayLength": 31,
+  "FirstSeen": "2016-08-21",
+  "LastSeen": "2016-09-20"
+ */
   switch (requestedField.getId()) {
     case 'competitor':
       return outer.Competitor;
@@ -403,7 +510,7 @@ function getMappedData(outer, inner, requestedField) {
     case 'searchTerm':
       return outer.SearchTerm;
     case 'date':
-      return inner.Date.replaceAll('-', '');
+      return transformDate(inner.Date);
     case 'value':
       return inner.Value;
     case 'competitors':
@@ -417,13 +524,31 @@ function getMappedData(outer, inner, requestedField) {
     case 'averagePosition':
       return outer.AveragePosition;
     case 'shareOfClicks':
-      return parseFloat(outer.ShareOfClicks) / 100;
+      return percentageStringToNumeric(outer.ShareOfClicks);
     case 'shareOfSpend':
-      return parseFloat(outer.ShareOfSpend) / 100;
+      return percentageStringToNumeric(outer.ShareOfSpend);
     case 'minCpc':
       return outer.MinCPC;
     case 'maxCpc':
       return outer.MaxCPC;
+    case 'adId':
+      return outer.AdId;
+    case 'title':
+      return outer.Title;
+    case 'description':
+      return outer.Description;
+    case 'displayUrl':
+      return outer.DisplayUrl;
+    case 'bestPosition':
+      return outer.BestPosition;
+    case 'frequency':
+      return percentageStringToNumeric(outer.Frequency);
+    case 'displayLength':
+      return outer.DisplayLength;
+    case 'firstSeen':
+      return transformDate(outer.FirstSeen);
+    case 'lastSeen':
+      return transformDate(outer.LastSeen);
     default:
       return '';
   }
