@@ -123,13 +123,13 @@ function getMarketShareFields() {
     .newMetric()
     .setId('shareOfClicks')
     .setName('Share of Clicks')
-    .setType(types.NUMBER);
+    .setType(types.PERCENT);
 
   fields
     .newMetric()
     .setId('shareOfSpend')
     .setName('Share of Spend')
-    .setType(types.NUMBER);
+    .setType(types.PERCENT);
 
   return fields;
 }
@@ -282,7 +282,7 @@ function getTopAdsFields() {
     .newMetric()
     .setId('frequency')
     .setName('Frequency')
-    .setType(types.NUMBER);
+    .setType(types.PERCENT);
 
   fields
     .newMetric()
