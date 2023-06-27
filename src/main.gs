@@ -332,8 +332,19 @@ function getFields(request) {
   return fields;
 }
 
+function validateConfig(request) {
+  if (isNaN(request.configParams.accountId)) {
+    cc.newUserError().setText('Please specify an Adthena Account ID').throwException();
+  } else if (!request.configParams.apiKey) {
+    cc.newUserError().setText('Please specify an Adthena API Key.').throwException();
+  } else if (!request.configParams.apiEndpoint) {
+    cc.newUserError().setText('Please select an enpoint for your dataset.').throwException();
+  }
+}
+
 // https://developers.google.com/datastudio/connector/reference#getschema
 function getSchema(request) {
+  validateConfig(request);
   return {schema: getFields(request).build()};
 }
 
