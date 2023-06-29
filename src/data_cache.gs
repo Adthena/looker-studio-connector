@@ -8,9 +8,9 @@
  *
  * @return {object} DataCache.
  */
-function DataCache(cacheService, accountId, startDate, endDate, trendPath, device, adType, isWholeMarket) {
+function DataCache(cacheService, accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters) {
   this.service = cacheService;
-  this.cacheKey = this.buildCacheKey(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket);
+  this.cacheKey = this.buildCacheKey(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters);
 
   return this;
 }
@@ -26,8 +26,8 @@ DataCache.MAX_CACHE_SIZE = 100 * 1024;
  *
  * @return {String} cache key
  */
-DataCache.prototype.buildCacheKey = function(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket) {
-  return [accountId, startDate, endDate, trendPath, device, adType, isWholeMarket].join('_');
+DataCache.prototype.buildCacheKey = function(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters) {
+  return [accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters].join('_');
 };
 
 /**

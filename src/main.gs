@@ -70,6 +70,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
+    .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS));
 
   if (!isFirstRequest) {
@@ -82,7 +83,7 @@ function getConfig(request) {
       .setName('API Endpoint')
       .setHelpText('The API endpoint gives you a choice of what data to pull into your report.');
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
-    endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.endpoint)));
+    endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
   }
 
   config.setDateRangeRequired(true);
@@ -163,7 +164,7 @@ function getMarketTrendsFields() {
   return fields;
 }
 
-function getSearchTermDetailFields() {
+function getSearchTermDetailAndOpportunitiesFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
   var aggregations = cc.AggregationType;
@@ -316,7 +317,10 @@ function getFields(request) {
       fields = getMarketShareFields();
       break;
     case ST_DETAIL:
-      fields = getSearchTermDetailFields();
+      fields = getSearchTermDetailAndOpportunitiesFields();
+      break;
+    case ST_OPPORTUNITIES:
+      fields = getSearchTermDetailAndOpportunitiesFields();
       break;
     case TOP_ADS:
       fields = getTopAdsFields();
@@ -364,8 +368,8 @@ function getData(request) {
     var device = request.configParams.device;
     var adType = request.configParams.adType;
     var isWholeMarket = request.configParams.isWholeMarket;
-    var apiEndpoint = request.configParams.apiEndpoint;
-    apiResponse = fetchData(accountId, apiKey, startDate, endDate, apiEndpoint, device, adType, isWholeMarket);
+    var endpointWithFilters = getEndpointWithFilters(request.configParams.apiEndpoint);
+    apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket);
     var data = getFormattedData(apiResponse, requestedFields);
   } catch (e) {
     cc.newUserError()
@@ -387,21 +391,22 @@ function getData(request) {
 /**
  * Fetch the data from the Adthena API. First check if it's available in the cache and then fall back to the API.
  */
-function fetchData(accountId, apiKey, startDate, endDate, trendPath, device, adType, isWholeMarket) {
+function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket) {
   var cache = new DataCache(
     CacheService.getUserCache(),
     accountId,
     startDate,
     endDate,
-    trendPath,
+    endpointWithFilters.endpoint,
     device,
     adType,
-    isWholeMarket
+    isWholeMarket,
+    endpointWithFilters.filters
   );
   var apiResponse = null;
   apiResponse = fetchDataFromCache(cache);
   if (!apiResponse) {
-    apiResponse = JSON.parse(fetchDataFromApi(accountId, apiKey, startDate, endDate, trendPath, device, adType, isWholeMarket));
+    apiResponse = JSON.parse(fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket));
     setInCache(apiResponse, cache);
   }
   return apiResponse;
@@ -413,12 +418,12 @@ function fetchData(accountId, apiKey, startDate, endDate, trendPath, device, adT
  * @param {Object} request Data request parameters.
  * @returns {string} Response text for UrlFetchApp.
  */
-function fetchDataFromApi(accountId, apiKey, startDate, endDate, apiPath, device, adType, isWholeMarket) {
+function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket) {
   var url = [
     'https://api.adthena.com/wizard/',
     accountId,
     '/',
-    apiPath,
+    endpointWithFilters.endpoint,
     '/all?periodstart=',
     startDate,
     '&periodend=',
@@ -428,7 +433,8 @@ function fetchDataFromApi(accountId, apiKey, startDate, endDate, apiPath, device
     '&traffictype=',
     adType,
     '&wholemarket=',
-    isWholeMarket
+    isWholeMarket,
+    endpointWithFilters.filters ? '&' + endpointWithFilters.filters : ''
   ].join('');
   var options = {
     'method': 'GET',
@@ -464,17 +470,6 @@ function setInCache(apiResponse, cache) {
 }
 
 function getMappedData(outer, inner, requestedField) {
-  /**
- * "AdId": "20c340ec-7c42-4972-bc96-99149c80f023",
-  "Title": "First ad title",
-  "Description": "First ad Description",
-  "DisplayUrl": "www.competitor1.com/ad",
-  "BestPosition": "T1",
-  "Frequency": "86.39%",
-  "DisplayLength": 31,
-  "FirstSeen": "2016-08-21",
-  "LastSeen": "2016-09-20"
- */
   switch (requestedField.getId()) {
     case 'competitor':
       return outer.Competitor;
