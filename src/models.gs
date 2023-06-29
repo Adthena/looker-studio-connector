@@ -12,6 +12,12 @@ function EndpointWithFilters(endpoint, filters = null) {
   return this;
 }
 
+const DEFAULTS = {
+  device: 'desktop',
+  adType: 'paid',
+  isWholeMarket: 'true'
+};
+
 const TREND = 'trend';
 const SHARE = 'share';
 const ST_DETAIL = 'search_term_detail';

@@ -420,19 +420,24 @@ function getFields(request) {
   return fields;
 }
 
-function validateConfig(request) {
-  if (isNaN(request.configParams.accountId)) {
+function validateConfig(configParams) {
+  configParams = configParams || {};
+  if (isNaN(configParams.accountId)) {
     cc.newUserError().setText('Please specify an Adthena Account ID').throwException();
-  } else if (!request.configParams.apiKey) {
+  } else if (!configParams.apiKey) {
     cc.newUserError().setText('Please specify an Adthena API Key.').throwException();
-  } else if (!request.configParams.apiEndpoint) {
+  } else if (!configParams.apiEndpoint) {
     cc.newUserError().setText('Please select an enpoint for your dataset.').throwException();
   }
+  configParams.device = configParams.device || DEFAULTS.device;
+  configParams.adType = configParams.adType || DEFAULTS.adType;
+  configParams.isWholeMarket = configParams.isWholeMarket || DEFAULTS.isWholeMarket;
+  return configParams;
 }
 
 // https://developers.google.com/datastudio/connector/reference#getschema
 function getSchema(request) {
-  validateConfig(request);
+  validateConfig(request.configParams);
   return {schema: getFields(request).build()};
 }
 
@@ -445,14 +450,15 @@ function getData(request) {
   );
 
   try {
-    var accountId = request.configParams.accountId;
-    var apiKey = request.configParams.apiKey;
+    var configParams = validateConfig(request.configParams);
+    var accountId = configParams.accountId;
+    var apiKey = configParams.apiKey;
     var startDate = request.dateRange.startDate;
     var endDate = request.dateRange.endDate;
-    var device = request.configParams.device;
-    var adType = request.configParams.adType;
-    var isWholeMarket = request.configParams.isWholeMarket;
-    var endpointWithFilters = getEndpointWithFilters(request.configParams.apiEndpoint);
+    var device = configParams.device;
+    var adType = configParams.adType;
+    var isWholeMarket = configParams.isWholeMarket;
+    var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint);
     apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket);
     var data = getFormattedData(apiResponse, requestedFields);
   } catch (e) {
@@ -518,7 +524,8 @@ function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFil
     adType,
     '&wholemarket=',
     isWholeMarket,
-    endpointWithFilters.filters ? '&' + endpointWithFilters.filters : ''
+    endpointWithFilters.filters ? '&' + endpointWithFilters.filters : '',
+    '&platform=looker_studio'
   ].join('');
   var options = {
     'method': 'GET',
