@@ -17,6 +17,7 @@ const SHARE = 'share';
 const ST_DETAIL = 'search_term_detail';
 const TOP_ADS = 'top_ads';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
+const INFRINGEMENTS = 'infringements';
 const TREND_OPTIONS = [
   new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
   new MenuOption('Share of Spend', 'share-of-spend-trend'),
@@ -42,6 +43,9 @@ const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
 const TOP_ADS_OPTIONS = [
   new MenuOption('Top Adverts', 'top-adverts')
 ];
+const INFRINGEMENTS_OPTIONS = [
+  new MenuOption('Infringements', 'infringement')
+];
 const VIRTUAL_ENDPOINT_MAPPINGS = {
   'search-term-opportunities-1': new EndpointWithFilters('search-term-opportunities'),
   'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities', 'segment=missing_brand_terms'),
@@ -64,6 +68,8 @@ function getOptionsForDatasetType(datasetType) {
       return TOP_ADS_OPTIONS;
     case ST_OPPORTUNITIES:
       return SEARCH_TERM_OPPORTUNITIES_OPTIONS;
+    case INFRINGEMENTS:
+      return INFRINGEMENTS_OPTIONS;
     default:
       cc.newUserError()
         .setText('Please choose a valid dataset type.')

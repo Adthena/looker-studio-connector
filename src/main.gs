@@ -71,7 +71,8 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
-    .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS));
+    .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
+    .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
@@ -306,6 +307,86 @@ function getTopAdsFields() {
   return fields;
 }
 
+function getInfringementsFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('ruleName')
+    .setName('Rule Name')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('infringementId')
+    .setName('Infringement ID')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('infringementDateTime')
+    .setName('Date & Time')
+    .setType(types.YEAR_MONTH_DAY_SECOND);
+
+  fields
+    .newDimension()
+    .setId('searchTerm')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('position')
+    .setName('Position')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('title')
+    .setName('Title')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('description')
+    .setName('Description')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('displayUrl')
+    .setName('Display URL')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('destinationUrl')
+    .setName('Destination URL')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('acClickUrl')
+    .setName('Ad Click URL')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('evidenceLink')
+    .setName('Evidence Link')
+    .setType(types.TEXT);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
   var fields = null;
@@ -324,6 +405,9 @@ function getFields(request) {
       break;
     case TOP_ADS:
       fields = getTopAdsFields();
+      break;
+    case INFRINGEMENTS:
+      fields = getInfringementsFields();
       break;
     default:
       cc.newUserError()
@@ -517,6 +601,20 @@ function getMappedData(outer, inner, requestedField) {
       return transformDate(outer.FirstSeen);
     case 'lastSeen':
       return transformDate(outer.LastSeen);
+    case 'ruleName':
+      return outer.RuleName;
+    case 'infringementId':
+      return outer.InfringementId;
+    case 'infringementDateTime':
+      return transformInfringementDate(outer.Date) + transformTime(outer.Time);
+    case 'position':
+      return outer.Position;
+    case 'destinationUrl':
+      return outer.DestinationUrl;
+    case 'adClickUrl':
+      return outer.AdClickUrl;
+    case 'evidenceLink':
+      return outer.EvidenceLink;
     default:
       return '';
   }
