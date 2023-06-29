@@ -72,11 +72,14 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
+    .addOption(config.newOptionBuilder().setLabel('Google Shopping (Coming Soon)').setValue(TOP_PLAS))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
+    } else if (configParams.datasetType === TOP_PLAS) {
+      cc.newUserError().setText('Google Shopping is coming soon. Please choose a different dataset type.').throwException();
     }
     var endpoint = config
       .newSelectSingle()
@@ -307,6 +310,80 @@ function getTopAdsFields() {
   return fields;
 }
 
+function getTopPlasFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('adId')
+    .setName('Ad ID')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('title')
+    .setName('Title')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('displayText')
+    .setName('DisplayText')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('frequency')
+    .setName('Frequency')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('marketCoverage')
+    .setName('Market Coverage')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('price')
+    .setName('Price')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('firstSeen')
+    .setName('First Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('lastSeen')
+    .setName('Last Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('image')
+    .setName('Image')
+    .setType(types.URL);
+
+  fields
+    .newMetric()
+    .setId('displayLength')
+    .setName('Display Length')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getInfringementsFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
@@ -382,7 +459,7 @@ function getInfringementsFields() {
     .newDimension()
     .setId('evidenceLink')
     .setName('Evidence Link')
-    .setType(types.TEXT);
+    .setType(types.URL);
 
   return fields;
 }
@@ -406,6 +483,9 @@ function getFields(request) {
     case TOP_ADS:
       fields = getTopAdsFields();
       break;
+    case TOP_PLAS:
+      fields = getTopPlasFields();
+      break;
     case INFRINGEMENTS:
       fields = getInfringementsFields();
       break;
@@ -424,9 +504,11 @@ function validateConfig(configParams) {
   configParams = configParams || {};
   if (isNaN(configParams.accountId)) {
     cc.newUserError().setText('Please specify an Adthena Account ID').throwException();
-  } else if (!configParams.apiKey) {
+  }
+  if (!configParams.apiKey) {
     cc.newUserError().setText('Please specify an Adthena API Key.').throwException();
-  } else if (!configParams.apiEndpoint) {
+  }
+  if (!configParams.apiEndpoint) {
     cc.newUserError().setText('Please select an enpoint for your dataset.').throwException();
   }
   configParams.device = configParams.device || DEFAULTS.device;
@@ -563,7 +645,7 @@ function setInCache(apiResponse, cache) {
 function getMappedData(outer, inner, requestedField) {
   switch (requestedField.getId()) {
     case 'competitor':
-      return outer.Competitor;
+      return outer.Competitor || outer.CompetitorDomain;
     case 'topCompetitor':
       return outer.TopCompetitor;
     case 'searchTerm':
@@ -583,9 +665,9 @@ function getMappedData(outer, inner, requestedField) {
     case 'averagePosition':
       return outer.AveragePosition;
     case 'shareOfClicks':
-      return percentageStringToNumeric(outer.ShareOfClicks);
+      return handlePercentageResult(outer.ShareOfClicks);
     case 'shareOfSpend':
-      return percentageStringToNumeric(outer.ShareOfSpend);
+      return handlePercentageResult(outer.ShareOfSpend);
     case 'minCpc':
       return outer.MinCPC;
     case 'maxCpc':
@@ -594,6 +676,8 @@ function getMappedData(outer, inner, requestedField) {
       return outer.AdId;
     case 'title':
       return outer.Title;
+    case 'displayText':
+      return outer.DisplayText;
     case 'description':
       return outer.Description;
     case 'displayUrl':
@@ -601,13 +685,15 @@ function getMappedData(outer, inner, requestedField) {
     case 'bestPosition':
       return outer.BestPosition;
     case 'frequency':
-      return percentageStringToNumeric(outer.Frequency);
+      return handlePercentageResult(outer.Frequency);
+    case 'marketCoverage':
+      return handlePercentageResult(outer.MarketCoverage);
     case 'displayLength':
-      return outer.DisplayLength;
+      return outer.DisplayLength || outer.AppearanceDuration;
     case 'firstSeen':
-      return transformDate(outer.FirstSeen);
+      return transformDate(outer.FirstSeen || outer.FirstAppearance);
     case 'lastSeen':
-      return transformDate(outer.LastSeen);
+      return transformDate(outer.LastSeen || outer.LastAppearance);
     case 'ruleName':
       return outer.RuleName;
     case 'infringementId':
@@ -622,6 +708,10 @@ function getMappedData(outer, inner, requestedField) {
       return outer.AdClickUrl;
     case 'evidenceLink':
       return outer.EvidenceLink;
+    case 'price':
+      return outer.Price;
+    case 'image':
+      return outer.Image;
     default:
       return '';
   }

@@ -22,6 +22,7 @@ const TREND = 'trend';
 const SHARE = 'share';
 const ST_DETAIL = 'search_term_detail';
 const TOP_ADS = 'top_ads';
+const TOP_PLAS = 'top_plas';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
 const INFRINGEMENTS = 'infringements';
 const TREND_OPTIONS = [
@@ -49,6 +50,9 @@ const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
 const TOP_ADS_OPTIONS = [
   new MenuOption('Top Adverts', 'top-adverts')
 ];
+const TOP_PLAS_OPTIONS = [
+  new MenuOption('Top PLAs (Coming Soon)', 'top-pla')
+];
 const INFRINGEMENTS_OPTIONS = [
   new MenuOption('Infringements', 'infringement')
 ];
@@ -72,6 +76,8 @@ function getOptionsForDatasetType(datasetType) {
       return SEARCH_TERM_DETAIL_OPTIONS;
     case TOP_ADS:
       return TOP_ADS_OPTIONS;
+    case TOP_PLAS:
+      return TOP_PLAS_OPTIONS;
     case ST_OPPORTUNITIES:
       return SEARCH_TERM_OPPORTUNITIES_OPTIONS;
     case INFRINGEMENTS:

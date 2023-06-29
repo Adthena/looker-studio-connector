@@ -14,6 +14,10 @@ function transformInfringementDate(date) {
   return date.split('-').reverse().join('');
 }
 
+function handlePercentageResult(percentage) {
+  return isNaN(percentage) ? percentageStringToNumeric(percentage) : percentage;
+}
+
 function percentageStringToNumeric(percentage) {
   return parseFloat(percentage) / 100;
 }
