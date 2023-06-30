@@ -7,9 +7,8 @@ function getConfig(request) {
   var configParams = request.configParams;
   var config = cc.getConfig();
   var isFirstRequest = configParams === undefined;
-  if (isFirstRequest) {
-    config.setIsSteppedConfig(true);
-  }
+  var isSteppedConfig = isFirstRequest;
+  config.setIsSteppedConfig(isSteppedConfig);
 
   config
     .newInfo()
@@ -32,35 +31,6 @@ function getConfig(request) {
     .setPlaceholder('your-api-key')
     .setHelpText('Your Adthena API Key');
 
-  config
-    .newSelectSingle()
-    .setId('device')
-    .setName('Device')
-    .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
-    .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
-    .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
-    .setAllowOverride(true);
-
-  config
-    .newSelectSingle()
-    .setId('adType')
-    .setName('Ad Type')
-    .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('paid'))
-    .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
-    .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
-    .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
-    .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
-    .setAllowOverride(true);
-
-  config
-    .newSelectSingle()
-    .setId('isWholeMarket')
-    .setName('Market Type')
-    .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
-    .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
-    .setAllowOverride(true);
-
-  // choose the dataset type and enpoint at the very end
   config
     .newSelectSingle()
     .setId('datasetType')
@@ -88,11 +58,82 @@ function getConfig(request) {
       .setHelpText('The API endpoint gives you a choice of what data to pull into your report.');
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
     endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
+
+    config
+      .newCheckbox()
+      .setId('isAdvancedFiltering')
+      .setName('Enable advanced filtering options')
+      .setHelpText('If selected, you will be able to add search term groups, competitor groups, search terms and competitor domains to your dataset filters.')
+      .setIsDynamic(true);
+
+    if (configParams.isAdvancedFiltering === 'true') {
+      addBasicConfigOptions(config);
+
+      config
+        .newTextArea()
+        .setId('searchTermGroups')
+        .setName('Search Term Groups')
+        .setHelpText('Add your search term groups for filtering the reports, one per line.')
+        .setAllowOverride(true);
+
+      config
+        .newTextArea()
+        .setId('searchTerms')
+        .setName('Search Terms')
+        .setHelpText('Add your search terms for filtering the reports, one per line.')
+        .setAllowOverride(true);
+
+      config
+        .newTextArea()
+        .setId('competitorGroups')
+        .setName('Competitor Groups')
+        .setHelpText('Add your competitor groups for filtering the reports, one per line.')
+        .setAllowOverride(true);
+
+      config
+        .newTextArea()
+        .setId('competitors')
+        .setName('Competitors')
+        .setHelpText('Add your competitors for filtering the reports, one per line.')
+        .setAllowOverride(true);
+    } else {
+      addBasicConfigOptions(config);
+    }
   }
 
   config.setDateRangeRequired(true);
 
   return config.build();
+}
+
+function addBasicConfigOptions(config) {
+  config
+    .newSelectSingle()
+    .setId('device')
+    .setName('Device')
+    .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
+    .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
+    .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+    .setAllowOverride(true);
+
+  config
+    .newSelectSingle()
+    .setId('adType')
+    .setName('Ad Type')
+    .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('paid'))
+    .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
+    .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
+    .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
+    .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+    .setAllowOverride(true);
+
+  config
+    .newSelectSingle()
+    .setId('isWholeMarket')
+    .setName('Market Type')
+    .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
+    .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
+    .setAllowOverride(true);
 }
 
 function getMarketShareFields() {
