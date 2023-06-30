@@ -12,6 +12,14 @@ function EndpointWithFilters(endpoint, filters = null) {
   return this;
 }
 
+EndpointWithFilters.prototype.withAdditionalFilters = function(filterKey, filterValues) {
+  if (filterValues === undefined || filterValues.trim() === '') {
+    return this;
+  }
+  var newFilters = filterValues.split(',').map(value => [filterKey, encodeURIComponent(value.trim())].join('=')).join('&');
+  return new EndpointWithFilters(this.endpoint, this.filters ? [this.filters, newFilters].join('&') : newFilters);
+};
+
 const DEFAULTS = {
   device: 'desktop',
   adType: 'paid',

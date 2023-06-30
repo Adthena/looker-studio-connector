@@ -70,31 +70,31 @@ function getConfig(request) {
       addBasicConfigOptions(config);
 
       config
-        .newTextArea()
+        .newTextInput()
         .setId('searchTermGroups')
         .setName('Search Term Groups')
-        .setHelpText('Add your search term groups for filtering the reports, one per line.')
+        .setHelpText('A comma-separated list of search term groups.')
         .setAllowOverride(true);
 
       config
-        .newTextArea()
+        .newTextInput()
         .setId('searchTerms')
         .setName('Search Terms')
-        .setHelpText('Add your search terms for filtering the reports, one per line.')
+        .setHelpText('A comma-separated list of search terms.')
         .setAllowOverride(true);
 
       config
-        .newTextArea()
+        .newTextInput()
         .setId('competitorGroups')
         .setName('Competitor Groups')
-        .setHelpText('Add your competitor groups for filtering the reports, one per line.')
+        .setHelpText('A comma-separated list of competitor groups.')
         .setAllowOverride(true);
 
       config
-        .newTextArea()
+        .newTextInput()
         .setId('competitors')
         .setName('Competitors')
-        .setHelpText('Add your competitors for filtering the reports, one per line.')
+        .setHelpText('A comma-separated list of domains.')
         .setAllowOverride(true);
     } else {
       addBasicConfigOptions(config);
@@ -581,7 +581,11 @@ function getData(request) {
     var device = configParams.device;
     var adType = configParams.adType;
     var isWholeMarket = configParams.isWholeMarket;
-    var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint);
+    var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
+      .withAdditionalFilters('cg', configParams.competitorGroups)
+      .withAdditionalFilters('competitor', configParams.competitors)
+      .withAdditionalFilters('kg', configParams.searchTermGroups)
+      .withAdditionalFilters('searchterm', configParams.searchTerms);
     apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket);
     var data = getFormattedData(apiResponse, requestedFields);
   } catch (e) {
