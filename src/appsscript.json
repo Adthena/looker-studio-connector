@@ -12,7 +12,7 @@
     "companyUrl": "https://www.adthena.com/",
     "addonUrl": "https://www.adthena.com/technology/lookerstudio/",
     "supportUrl": "https://github.com/Adthena/looker-studio-connector/issues",
-    "description": "This connector allows existing Adthena users with API access to pull their data in Looker Studio for exploration, reporting and mixing in with other available data sources. Simply provide your account id and API key as part of the connector set up and choose the dataset you want to bring.",
+    "description": "This connector allows existing Adthena users with API access to pull their data in Looker Studio for exploration, reporting and mixing in with other available data sources. Simply provide your Account ID and API key as part of the connector set up and choose the dataset you want to bring. If you need to add multiple datasets, add an instance of this connector multiple times.",
     "shortDescription": "Connect to all Adthena API data using this connector.",
     "authType": [
       "NONE"

@@ -21,3 +21,8 @@ function handlePercentageResult(percentage) {
 function percentageStringToNumeric(percentage) {
   return parseFloat(percentage) / 100;
 }
+
+function getYesterday() {
+  const tmp = new Date();
+  return new Date(tmp.setDate(tmp.getDate() - 1));
+}
