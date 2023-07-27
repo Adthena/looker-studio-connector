@@ -15,8 +15,8 @@ function DataCache(cacheService, accountId, startDate, endDate, trendPath, devic
   return this;
 }
 
-/** @const - 6 hours, Google's max */
-DataCache.REQUEST_CACHING_TIME = 21600;
+/** @const - 6 hours, Google's max. Cache for 30 minutes. */
+DataCache.REQUEST_CACHING_TIME = 1800;
 
 /** @const - 100 KB */
 DataCache.MAX_CACHE_SIZE = 100 * 1024;
