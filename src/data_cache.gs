@@ -35,8 +35,10 @@ DataCache.prototype.buildCacheKey = function(accountId, startDate, endDate, tren
     device,
     adType,
     isWholeMarket,
-    Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, filters)
-      .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '')
+    filters
+      ? Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, filters)
+        .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '')
+      : filters
   ].join('_');
 };
 
