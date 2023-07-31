@@ -27,7 +27,17 @@ DataCache.MAX_CACHE_SIZE = 100 * 1024;
  * @return {String} cache key
  */
 DataCache.prototype.buildCacheKey = function(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters) {
-  return [accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters].join('_');
+  return [
+    accountId,
+    startDate,
+    endDate,
+    trendPath,
+    device,
+    adType,
+    isWholeMarket,
+    Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, filters)
+      .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '')
+  ].join('_');
 };
 
 /**
