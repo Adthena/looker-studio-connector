@@ -543,7 +543,7 @@ function getFields(request) {
 
 function validateConfig(configParams) {
   configParams = configParams || {};
-  if (isNaN(configParams.accountId)) {
+  if (!configParams.accountId || isNaN(configParams.accountId)) {
     cc.newUserError().setText('Please specify an Adthena Account ID').throwException();
   }
   if (!configParams.apiKey) {
@@ -566,11 +566,22 @@ function getSchema(request) {
 
 // https://developers.google.com/datastudio/connector/reference#getdata
 function getData(request) {
-  var requestedFields = getFields(request).forIds(
-    request.fields.map(function(field) {
-      return field.name;
-    })
-  );
+  var requestedFields;
+  try {
+    requestedFields = getFields(request).forIds(
+      request.fields.map(function(field) {
+        if (field.forFilterOnly) {
+          console.log('For filter only field: ', field.name);
+          console.log(JSON.stringify(request.dimensionsFilters));
+        }
+        return field.name;
+      })
+    );
+  } catch(e) {
+    // request.fields is sometimes undefined. Log some more details so we can debug
+    console.log('Caught exception trying to get requested fields. Request: ', request);
+    throw e;
+  }
 
   try {
     var configParams = validateConfig(request.configParams);
@@ -778,7 +789,7 @@ function getFormattedData(response, requestedFields) {
       return comp.Data.map(
         function(point) {
           row = fields.map(requestedField => getMappedData(comp, point, requestedField));
-          return { values: row};
+          return { values: row };
         });
     } else {
       return [{ values: fields.map(requestedField => getMappedData(comp, comp, requestedField)) }];
