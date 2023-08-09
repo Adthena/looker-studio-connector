@@ -96,6 +96,15 @@ function getConfig(request) {
         .setName('Competitors')
         .setHelpText('A comma-separated list of domains.')
         .setAllowOverride(true);
+
+      if (configParams.datasetType === INFRINGEMENTS) {
+        config
+          .newTextInput()
+          .setId('infringementRuleIds')
+          .setName('Infringement Rule IDs')
+          .setHelpText('A comma-separated list of infringement rule IDs.')
+          .setAllowOverride(true);
+      }
     } else {
       addBasicConfigOptions(config);
     }
@@ -596,7 +605,8 @@ function getData(request) {
       .withAdditionalFilters('cg', configParams.competitorGroups)
       .withAdditionalFilters('competitor', configParams.competitors)
       .withAdditionalFilters('kg', configParams.searchTermGroups)
-      .withAdditionalFilters('searchterm', configParams.searchTerms);
+      .withAdditionalFilters('searchterm', configParams.searchTerms)
+      .withAdditionalFilters('infringementrule', configParams.infringementRuleIds);
     apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket);
     var data = getFormattedData(apiResponse, requestedFields);
   } catch (e) {

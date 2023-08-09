@@ -71,7 +71,8 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'search-term-opportunities-4': new EndpointWithFilters('search-term-opportunities', 'segment=missing_organic_terms'),
   'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities', 'segment=low_cost_terms'),
   'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities', 'segment=not_in_adwords_terms'),
-  'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities', 'segment=underperforming_adwords_terms')
+  'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities', 'segment=underperforming_adwords_terms'),
+  'infringement': new EndpointWithFilters('infringement', 'type=infringementTracker')
 };
 
 function getOptionsForDatasetType(datasetType) {
