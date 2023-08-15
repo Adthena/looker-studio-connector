@@ -8,9 +8,9 @@
  *
  * @return {object} DataCache.
  */
-function DataCache(cacheService, accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters) {
+function DataCache(cacheService, accountId, startDate, endDate, trendPath, filters) {
   this.service = cacheService;
-  this.cacheKey = this.buildCacheKey(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters);
+  this.cacheKey = this.buildCacheKey(accountId, startDate, endDate, trendPath, filters);
 
   return this;
 }
@@ -26,15 +26,12 @@ DataCache.MAX_CACHE_SIZE = 100 * 1024;
  *
  * @return {String} cache key
  */
-DataCache.prototype.buildCacheKey = function(accountId, startDate, endDate, trendPath, device, adType, isWholeMarket, filters) {
+DataCache.prototype.buildCacheKey = function(accountId, startDate, endDate, trendPath, filters) {
   return [
     accountId,
     startDate,
     endDate,
     trendPath,
-    device,
-    adType,
-    isWholeMarket,
     filters
       ? Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, filters)
         .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '')

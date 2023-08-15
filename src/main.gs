@@ -602,12 +602,15 @@ function getData(request) {
     var adType = configParams.adType;
     var isWholeMarket = configParams.isWholeMarket;
     var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
+      .withAdditionalFilters('device', device)
+      .withAdditionalFilters('traffictype', adType)
+      .withAdditionalFilters('wholemarket', isWholeMarket)
       .withAdditionalFilters('cg', configParams.competitorGroups)
       .withAdditionalFilters('competitor', configParams.competitors)
       .withAdditionalFilters('kg', configParams.searchTermGroups)
       .withAdditionalFilters('searchterm', configParams.searchTerms)
       .withAdditionalFilters('infringementrule', configParams.infringementRuleIds);
-    apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket);
+    apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
     var data = getFormattedData(apiResponse, requestedFields);
   } catch (e) {
     cc.newUserError()
@@ -629,22 +632,19 @@ function getData(request) {
 /**
  * Fetch the data from the Adthena API. First check if it's available in the cache and then fall back to the API.
  */
-function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket) {
+function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters) {
   var cache = new DataCache(
     CacheService.getUserCache(),
     accountId,
     startDate,
     endDate,
     endpointWithFilters.endpoint,
-    device,
-    adType,
-    isWholeMarket,
     endpointWithFilters.filters
   );
   var apiResponse = null;
   apiResponse = fetchDataFromCache(cache);
   if (!apiResponse) {
-    apiResponse = JSON.parse(fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket));
+    apiResponse = JSON.parse(fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters));
     setInCache(apiResponse, cache);
   }
   return apiResponse;
@@ -656,7 +656,7 @@ function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, d
  * @param {Object} request Data request parameters.
  * @returns {string} Response text for UrlFetchApp.
  */
-function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters, device, adType, isWholeMarket) {
+function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters) {
   var url = [
     'https://api.adthena.com/wizard/',
     accountId,
@@ -666,12 +666,6 @@ function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFil
     startDate,
     '&periodend=',
     endDate,
-    '&device=',
-    device,
-    '&traffictype=',
-    adType,
-    '&wholemarket=',
-    isWholeMarket,
     endpointWithFilters.filters ? '&' + endpointWithFilters.filters : '',
     '&platform=looker_studio'
   ].join('');
