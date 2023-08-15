@@ -5,9 +5,10 @@ function MenuOption(label, virtualEndpoint) {
   return this;
 }
 
-function EndpointWithFilters(endpoint, filters = null) {
+function EndpointWithFilters(endpoint, filters = null, forbiddenFilters = []) {
   this.endpoint = endpoint;
   this.filters = filters;
+  this.forbiddenFilters = forbiddenFilters;
 
   return this;
 }
@@ -17,7 +18,11 @@ EndpointWithFilters.prototype.withAdditionalFilters = function(filterKey, filter
     return this;
   }
   var newFilters = filterValues.split(',').map(value => [filterKey, encodeURIComponent(value.trim())].join('=')).join('&');
-  return new EndpointWithFilters(this.endpoint, this.filters ? [this.filters, newFilters].join('&') : newFilters);
+  return new EndpointWithFilters(this.endpoint, this.filters ? [this.filters, newFilters].join('&') : newFilters, this.forbiddenFilters);
+};
+
+EndpointWithFilters.prototype.containsForbiddenFilters = function() {
+  return this.filters ? this.forbiddenFilters.find(f => this.filters.includes(f)) !== undefined : false;
 };
 
 const DEFAULTS = {
@@ -66,12 +71,12 @@ const INFRINGEMENTS_OPTIONS = [
 ];
 const VIRTUAL_ENDPOINT_MAPPINGS = {
   'search-term-opportunities-1': new EndpointWithFilters('search-term-opportunities'),
-  'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities', 'segment=missing_brand_terms'),
-  'search-term-opportunities-3': new EndpointWithFilters('search-term-opportunities', 'segment=new_terms'),
-  'search-term-opportunities-4': new EndpointWithFilters('search-term-opportunities', 'segment=missing_organic_terms'),
-  'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities', 'segment=low_cost_terms'),
-  'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities', 'segment=not_in_adwords_terms'),
-  'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities', 'segment=underperforming_adwords_terms'),
+  'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities', 'segment=missing_brand_terms', ['device=total']),
+  'search-term-opportunities-3': new EndpointWithFilters('search-term-opportunities', 'segment=new_terms', ['device=total']),
+  'search-term-opportunities-4': new EndpointWithFilters('search-term-opportunities', 'segment=missing_organic_terms', ['device=total']),
+  'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities', 'segment=low_cost_terms', ['device=total']),
+  'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities', 'segment=not_in_adwords_terms', ['device=total']),
+  'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities', 'segment=underperforming_adwords_terms', ['device=total']),
   'infringement': new EndpointWithFilters('infringement', 'type=infringementTracker')
 };
 

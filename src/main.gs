@@ -657,6 +657,10 @@ function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters) {
  * @returns {string} Response text for UrlFetchApp.
  */
 function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters) {
+  if (endpointWithFilters.containsForbiddenFilters()) {
+    console.log('Forbidden filters detected: %s. Returning empty Json array. Full filter: %s.', endpointWithFilters.forbiddenFilters.join('; '), endpointWithFilters.filters);
+    return '[]';
+  }
   var url = [
     'https://api.adthena.com/wizard/',
     accountId,
