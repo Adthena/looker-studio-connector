@@ -15,7 +15,14 @@ function transformInfringementDate(date) {
 }
 
 function handlePercentageResult(percentage) {
-  return isNaN(percentage) ? percentageStringToNumeric(percentage) : percentage;
+  return fastIsNaN(percentage) ? percentageStringToNumeric(percentage) : percentage;
+}
+
+/**
+ * The built-in isNaN is very slow. This is a much faster implementation.
+ */
+function fastIsNaN(value) {
+  return !(value <= 0) && !(value > 0);
 }
 
 function percentageStringToNumeric(percentage) {

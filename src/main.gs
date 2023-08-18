@@ -701,6 +701,7 @@ function setInCache(apiResponse, cache) {
   console.log('Setting data to cache...');
   try {
     cache.set(JSON.stringify(apiResponse));
+    console.log('Cache set successfully.');
   } catch (e) {
     console.log('Error when storing in cache', e);
   }
