@@ -710,7 +710,7 @@ function setInCache(apiResponse, cache) {
 }
 
 function getMappedData(outer, inner, requestedField) {
-  switch (requestedField.getId()) {
+  switch (requestedField) {
     case 'competitor':
       return outer.Competitor || outer.CompetitorDomain;
     case 'topCompetitor':
@@ -794,7 +794,8 @@ function getMappedData(outer, inner, requestedField) {
  *     field.
  */
 function getFormattedData(response, requestedFields) {
-  var fields = requestedFields.asArray();
+  // get the field IDs and use them in getMappedData, because getId() is very expensive.
+  var fields = requestedFields.asArray().map(f => f.getId());
   return response.flatMap(function(comp) {
     if (comp.Data) {
       return comp.Data.map(
