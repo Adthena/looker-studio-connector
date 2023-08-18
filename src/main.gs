@@ -611,7 +611,9 @@ function getData(request) {
       .withAdditionalFilters('searchterm', configParams.searchTerms)
       .withAdditionalFilters('infringementrule', configParams.infringementRuleIds);
     apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
+    console.log('Formatting data for requested fields.');
     var data = getFormattedData(apiResponse, requestedFields);
+    console.log('Data format complete. Ready to return.');
   } catch (e) {
     cc.newUserError()
       .setDebugText('Error fetching data from API. Exception details: ' + e)
