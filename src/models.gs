@@ -25,6 +25,13 @@ EndpointWithFilters.prototype.containsForbiddenFilters = function() {
   return this.filters ? this.forbiddenFilters.find(f => this.filters.includes(f)) !== undefined : false;
 };
 
+function SegmentedOption(fieldName, value) {
+  this.fieldName = fieldName;
+  this.value = value;
+
+  return this;
+};
+
 const DEFAULTS = {
   device: 'desktop',
   adType: 'paid',
@@ -32,7 +39,9 @@ const DEFAULTS = {
 };
 
 const TREND = 'trend';
+const SEGMENTED_TREND = 'segmented_trend';
 const SHARE = 'share';
+const SEGMENTED_SHARE = 'segmented_share';
 const ST_DETAIL = 'search_term_detail';
 const TOP_ADS = 'top_ads';
 const TOP_PLAS = 'top_plas';
@@ -86,6 +95,8 @@ function getOptionsForDatasetType(datasetType) {
       return SHARE_OPTIONS;
     case TREND:
       return TREND_OPTIONS;
+    case SEGMENTED_TREND:
+      return TREND_OPTIONS;
     case ST_DETAIL:
       return SEARCH_TERM_DETAIL_OPTIONS;
     case TOP_ADS:
@@ -105,4 +116,8 @@ function getOptionsForDatasetType(datasetType) {
 
 function getEndpointWithFilters(virtualEndpoint) {
   return VIRTUAL_ENDPOINT_MAPPINGS[virtualEndpoint] || new EndpointWithFilters(virtualEndpoint);
+}
+
+function isSegmentedDateset(datasetType) {
+  return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE;
 }

@@ -38,7 +38,9 @@ function getConfig(request) {
     .setHelpText('Choose your dataset first.')
     .setIsDynamic(true)
     .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
@@ -59,12 +61,17 @@ function getConfig(request) {
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
     endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
 
-    config
+    if (isSegmentedDateset(configParams.datasetType)) {
+      // enable advanced filtering when the user chooses a segmented dataset type and don't let the user remove it
+      configParams.isAdvancedFiltering = 'true';
+    } else {
+      config
       .newCheckbox()
       .setId('isAdvancedFiltering')
       .setName('Enable advanced filtering options')
       .setHelpText('If selected, you will be able to add search term groups, competitor groups, search terms and competitor domains to your dataset filters.')
       .setIsDynamic(true);
+    }
 
     if (configParams.isAdvancedFiltering === 'true') {
       addBasicConfigOptions(config);
@@ -145,10 +152,18 @@ function addBasicConfigOptions(config) {
     .setAllowOverride(true);
 }
 
-function getMarketShareFields() {
+function getMarketShareFields(isSegmented) {
   var fields = cc.getFields();
   var types = cc.FieldType;
   var aggregations = cc.AggregationType;
+
+  if (isSegmented) {
+    fields
+      .newDimension()
+      .setId('searchTermGroup')
+      .setName('Search Term Group')
+      .setType(types.TEXT);
+  }
 
   fields
     .newDimension()
@@ -189,10 +204,18 @@ function getMarketShareFields() {
   return fields;
 }
 
-function getMarketTrendsFields() {
+function getMarketTrendsFields(isSegmented) {
   var fields = cc.getFields();
   var types = cc.FieldType;
   var aggregations = cc.AggregationType;
+
+  if (isSegmented) {
+    fields
+      .newDimension()
+      .setId('searchTermGroup')
+      .setName('Search Term Group')
+      .setType(types.TEXT);
+  }
 
   fields
     .newDimension()
@@ -519,10 +542,16 @@ function getFields(request) {
   var fields = null;
   switch(datasetType) {
     case TREND:
-      fields = getMarketTrendsFields();
+      fields = getMarketTrendsFields(false);
+      break;
+    case SEGMENTED_TREND:
+      fields = getMarketTrendsFields(true);
       break;
     case SHARE:
-      fields = getMarketShareFields();
+      fields = getMarketShareFields(false);
+      break;
+    case SEGMENTED_SHARE:
+      fields = getMarketShareFields(true);
       break;
     case ST_DETAIL:
       fields = getSearchTermDetailAndOpportunitiesFields();
@@ -560,6 +589,9 @@ function validateConfig(configParams) {
   }
   if (!configParams.apiEndpoint) {
     cc.newUserError().setText('Please select an enpoint for your dataset.').throwException();
+  }
+  if (isSegmentedDateset(configParams.datasetType) && (!configParams.searchTermGroups || configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '').length === 0)) {
+    cc.newUserError().setText('You have chosen a segmented endpoint. Please add comma-separated search term groups to segment by.').throwException();
   }
   configParams.device = configParams.device || DEFAULTS.device;
   configParams.adType = configParams.adType || DEFAULTS.adType;
@@ -601,19 +633,24 @@ function getData(request) {
     var device = configParams.device;
     var adType = configParams.adType;
     var isWholeMarket = configParams.isWholeMarket;
-    var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
-      .withAdditionalFilters('device', device)
-      .withAdditionalFilters('traffictype', adType)
-      .withAdditionalFilters('wholemarket', isWholeMarket)
-      .withAdditionalFilters('cg', configParams.competitorGroups)
-      .withAdditionalFilters('competitor', configParams.competitors)
-      .withAdditionalFilters('kg', configParams.searchTermGroups)
-      .withAdditionalFilters('searchterm', configParams.searchTerms)
-      .withAdditionalFilters('infringementrule', configParams.infringementRuleIds);
-    apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
-    console.log('Formatting data for requested fields.');
-    var data = getFormattedData(apiResponse, requestedFields);
-    console.log('Data format complete. Ready to return.');
+    var isSegmentedResponse = isSegmentedDateset(configParams.datasetType);
+    var searchTermGroupSegments = isSegmentedResponse ? configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '') : [configParams.searchTermGroups];
+    var data = searchTermGroupSegments.flatMap(function (segment) {
+      var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
+        .withAdditionalFilters('device', device)
+        .withAdditionalFilters('traffictype', adType)
+        .withAdditionalFilters('wholemarket', isWholeMarket)
+        .withAdditionalFilters('cg', configParams.competitorGroups)
+        .withAdditionalFilters('competitor', configParams.competitors)
+        .withAdditionalFilters('kg', segment)
+        .withAdditionalFilters('searchterm', configParams.searchTerms)
+        .withAdditionalFilters('infringementrule', configParams.infringementRuleIds);
+      apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
+      console.log('Formatting data for requested fields.');
+      var dt = getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
+      console.log('Data format complete. Ready to return.');
+      return dt;
+    });
   } catch (e) {
     cc.newUserError()
       .setDebugText('Error fetching data from API. Exception details: ' + e)
@@ -709,7 +746,10 @@ function setInCache(apiResponse, cache) {
   }
 }
 
-function getMappedData(outer, inner, requestedField) {
+function getMappedData(outer, inner, requestedField, segment) {
+  if (segment && segment.fieldName === requestedField) {
+    return segment.value;
+  }
   switch (requestedField) {
     case 'competitor':
       return outer.Competitor || outer.CompetitorDomain;
@@ -790,21 +830,22 @@ function getMappedData(outer, inner, requestedField) {
  *
  * @param {Object} responseString The response string from external data source.
  * @param {Array} requestedFields The fields requested in the getData request.
+ * @param {Object} segment An optional segment option to put to the final formatted data.
  * @returns {Array} Array containing rows of data in key-value pairs for each
  *     field.
  */
-function getFormattedData(response, requestedFields) {
+function getFormattedData(response, requestedFields, segment) {
   // get the field IDs and use them in getMappedData, because getId() is very expensive.
   var fields = requestedFields.asArray().map(f => f.getId());
   return response.flatMap(function(comp) {
     if (comp.Data) {
       return comp.Data.map(
         function(point) {
-          row = fields.map(requestedField => getMappedData(comp, point, requestedField));
+          row = fields.map(requestedField => getMappedData(comp, point, requestedField, segment));
           return { values: row };
         });
     } else {
-      return [{ values: fields.map(requestedField => getMappedData(comp, comp, requestedField)) }];
+      return [{ values: fields.map(requestedField => getMappedData(comp, comp, requestedField, segment)) }];
     }
   });
 }
