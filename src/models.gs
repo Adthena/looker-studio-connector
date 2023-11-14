@@ -93,6 +93,8 @@ function getOptionsForDatasetType(datasetType) {
   switch (datasetType) {
     case SHARE:
       return SHARE_OPTIONS;
+    case SEGMENTED_SHARE:
+      return SHARE_OPTIONS;
     case TREND:
       return TREND_OPTIONS;
     case SEGMENTED_TREND:
