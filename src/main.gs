@@ -42,6 +42,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping (Coming Soon)').setValue(TOP_PLAS))
@@ -241,10 +242,18 @@ function getMarketTrendsFields(isSegmented) {
   return fields;
 }
 
-function getSearchTermDetailAndOpportunitiesFields() {
+function getSearchTermDetailAndOpportunitiesFields(isSegmented) {
   var fields = cc.getFields();
   var types = cc.FieldType;
   var aggregations = cc.AggregationType;
+
+  if (isSegmented) {
+    fields
+      .newDimension()
+      .setId('searchTermGroup')
+      .setName('Search Term Group')
+      .setType(types.TEXT);
+  }
 
   fields
     .newDimension()
@@ -554,10 +563,13 @@ function getFields(request) {
       fields = getMarketShareFields(true);
       break;
     case ST_DETAIL:
-      fields = getSearchTermDetailAndOpportunitiesFields();
+      fields = getSearchTermDetailAndOpportunitiesFields(false);
+      break;
+    case SEGMENTED_ST_DETAIL:
+      fields = getSearchTermDetailAndOpportunitiesFields(true);
       break;
     case ST_OPPORTUNITIES:
-      fields = getSearchTermDetailAndOpportunitiesFields();
+      fields = getSearchTermDetailAndOpportunitiesFields(false);
       break;
     case TOP_ADS:
       fields = getTopAdsFields();

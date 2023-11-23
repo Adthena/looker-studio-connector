@@ -43,6 +43,7 @@ const SEGMENTED_TREND = 'segmented_trend';
 const SHARE = 'share';
 const SEGMENTED_SHARE = 'segmented_share';
 const ST_DETAIL = 'search_term_detail';
+const SEGMENTED_ST_DETAIL = 'segmented_search_term_detail';
 const TOP_ADS = 'top_ads';
 const TOP_PLAS = 'top_plas';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
@@ -101,6 +102,8 @@ function getOptionsForDatasetType(datasetType) {
       return TREND_OPTIONS;
     case ST_DETAIL:
       return SEARCH_TERM_DETAIL_OPTIONS;
+    case SEGMENTED_ST_DETAIL:
+      return SEARCH_TERM_DETAIL_OPTIONS;
     case TOP_ADS:
       return TOP_ADS_OPTIONS;
     case TOP_PLAS:
@@ -121,5 +124,5 @@ function getEndpointWithFilters(virtualEndpoint) {
 }
 
 function isSegmentedDateset(datasetType) {
-  return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE;
+  return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE || datasetType === SEGMENTED_ST_DETAIL;
 }
