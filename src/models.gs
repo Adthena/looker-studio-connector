@@ -41,6 +41,7 @@ const DEFAULTS = {
 const TREND = 'trend';
 const SEGMENTED_TREND = 'segmented_trend';
 const SHARE = 'share';
+const ALL_SHARE = 'all_share';
 const SEGMENTED_SHARE = 'segmented_share';
 const ST_DETAIL = 'search_term_detail';
 const SEGMENTED_ST_DETAIL = 'segmented_search_term_detail';
@@ -49,17 +50,20 @@ const TOP_PLAS = 'top_plas';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
 const INFRINGEMENTS = 'infringements';
 const TREND_OPTIONS = [
-  new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
-  new MenuOption('Share of Spend', 'share-of-spend-trend'),
-  new MenuOption('Share of Impressions', 'impression-share-trend'),
-  new MenuOption('Average Position', 'average-position-trend'),
-  new MenuOption('Average CPC', 'average-cpc-trend')
+  new MenuOption('Share of Clicks', 'share-of-clicks-trend/all'),
+  new MenuOption('Share of Spend', 'share-of-spend-trend/all'),
+  new MenuOption('Share of Impressions', 'impression-share-trend/all'),
+  new MenuOption('Average Position', 'average-position-trend/all'),
+  new MenuOption('Average CPC', 'average-cpc-trend/all')
 ];
 const SHARE_OPTIONS = [
-  new MenuOption('Market Share', 'market-share')
+  new MenuOption('Market Share', 'market-share/all')
+];
+const ALL_SHARE_OPTIONS = [
+  new MenuOption('Market Share for All Groups and Locations', 'market-share/groups-and-locations')
 ];
 const SEARCH_TERM_DETAIL_OPTIONS = [
-  new MenuOption('Search Term Detail', 'search-term-detail')
+  new MenuOption('Search Term Detail', 'search-term-detail/all')
 ];
 const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
   new MenuOption('All Opportunities', 'search-term-opportunities-1'),
@@ -71,23 +75,23 @@ const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
   new MenuOption('Underperforming Google Ads', 'search-term-opportunities-7')
 ];
 const TOP_ADS_OPTIONS = [
-  new MenuOption('Top Adverts', 'top-adverts')
+  new MenuOption('Top Adverts', 'top-adverts/all')
 ];
 const TOP_PLAS_OPTIONS = [
-  new MenuOption('Top PLAs (Coming Soon)', 'top-pla')
+  new MenuOption('Top PLAs (Coming Soon)', 'top-pla/all')
 ];
 const INFRINGEMENTS_OPTIONS = [
   new MenuOption('Infringements', 'infringement')
 ];
 const VIRTUAL_ENDPOINT_MAPPINGS = {
-  'search-term-opportunities-1': new EndpointWithFilters('search-term-opportunities'),
-  'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities', 'segment=missing_brand_terms', ['device=total']),
-  'search-term-opportunities-3': new EndpointWithFilters('search-term-opportunities', 'segment=new_terms', ['device=total']),
-  'search-term-opportunities-4': new EndpointWithFilters('search-term-opportunities', 'segment=missing_organic_terms', ['device=total']),
-  'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities', 'segment=low_cost_terms', ['device=total']),
-  'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities', 'segment=not_in_adwords_terms', ['device=total']),
-  'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities', 'segment=underperforming_adwords_terms', ['device=total']),
-  'infringement': new EndpointWithFilters('infringement', 'type=infringementTracker')
+  'search-term-opportunities-1': new EndpointWithFilters('search-term-opportunities/all'),
+  'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities/all', 'segment=missing_brand_terms', ['device=total']),
+  'search-term-opportunities-3': new EndpointWithFilters('search-term-opportunities/all', 'segment=new_terms', ['device=total']),
+  'search-term-opportunities-4': new EndpointWithFilters('search-term-opportunities/all', 'segment=missing_organic_terms', ['device=total']),
+  'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities/all', 'segment=low_cost_terms', ['device=total']),
+  'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities/all', 'segment=not_in_adwords_terms', ['device=total']),
+  'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities/all', 'segment=underperforming_adwords_terms', ['device=total']),
+  'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker')
 };
 
 function getOptionsForDatasetType(datasetType) {
@@ -96,6 +100,8 @@ function getOptionsForDatasetType(datasetType) {
       return SHARE_OPTIONS;
     case SEGMENTED_SHARE:
       return SHARE_OPTIONS;
+    case ALL_SHARE:
+      return ALL_SHARE_OPTIONS;
     case TREND:
       return TREND_OPTIONS;
     case SEGMENTED_TREND:
@@ -123,6 +129,14 @@ function getEndpointWithFilters(virtualEndpoint) {
   return VIRTUAL_ENDPOINT_MAPPINGS[virtualEndpoint] || new EndpointWithFilters(virtualEndpoint);
 }
 
-function isSegmentedDateset(datasetType) {
+function isSegmentedDataset(datasetType) {
   return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE || datasetType === SEGMENTED_ST_DETAIL;
+}
+
+function isNonAdvancedDataset(datasetType) {
+  return datasetType === ALL_SHARE;
+}
+
+function isBasicDataset(datasetType) {
+  return datasetType === ALL_SHARE;
 }

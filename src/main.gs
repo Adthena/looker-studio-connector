@@ -41,6 +41,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE))
+    .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations').setValue(ALL_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
@@ -62,9 +63,11 @@ function getConfig(request) {
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
     endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
 
-    if (isSegmentedDateset(configParams.datasetType)) {
+    if (isSegmentedDataset(configParams.datasetType)) {
       // enable advanced filtering when the user chooses a segmented dataset type and don't let the user remove it
       configParams.isAdvancedFiltering = 'true';
+    } else if (isNonAdvancedDataset(configParams.datasetType)) {
+      configParams.isAdvancedFiltering = 'false';
     } else {
       config
       .newCheckbox()
@@ -75,7 +78,7 @@ function getConfig(request) {
     }
 
     if (configParams.isAdvancedFiltering === 'true') {
-      addBasicConfigOptions(config);
+      addBasicConfigOptions(config, configParams.datasetType);
 
       config
         .newTextInput()
@@ -114,7 +117,7 @@ function getConfig(request) {
           .setAllowOverride(true);
       }
     } else {
-      addBasicConfigOptions(config);
+      addBasicConfigOptions(config, configParams.datasetType);
     }
   }
 
@@ -123,26 +126,37 @@ function getConfig(request) {
   return config.build();
 }
 
-function addBasicConfigOptions(config) {
-  config
-    .newSelectSingle()
-    .setId('device')
-    .setName('Device')
-    .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
-    .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
-    .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
-    .setAllowOverride(true);
+function addBasicConfigOptions(config, datasetType) {
+  if (!isBasicDataset(datasetType)) {
+    config
+      .newSelectSingle()
+      .setId('device')
+      .setName('Device')
+      .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
+      .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
+      .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+      .setAllowOverride(true);
 
-  config
-    .newSelectSingle()
-    .setId('adType')
-    .setName('Ad Type')
-    .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('paid'))
-    .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
-    .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
-    .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
-    .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
-    .setAllowOverride(true);
+    config
+      .newSelectSingle()
+      .setId('adType')
+      .setName('Ad Type')
+      .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('paid'))
+      .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
+      .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
+      .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
+      .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+      .setAllowOverride(true);
+  } else {
+    config
+      .newSelectSingle()
+      .setId('isTotal')
+      .setName('Share aggregation type')
+      .addOption(config.newOptionBuilder().setLabel('Total').setValue('true'))
+      .addOption(config.newOptionBuilder().setLabel('By Device').setValue('false'))
+      .setHelpText('Whether to get total market share data or market share aggregated by device.')
+      .setAllowOverride(true);
+  }
 
   config
     .newSelectSingle()
@@ -201,6 +215,75 @@ function getMarketShareFields(isSegmented) {
     .setId('shareOfSpend')
     .setName('Share of Spend')
     .setType(types.PERCENT);
+
+  return fields;
+}
+
+function getAllMarketShareFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('location')
+    .setName('Location')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('searchTermGroup')
+    .setName('Search Term Group')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('adType')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('estimatedImpressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('totalImpressions')
+    .setName('Total Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('shareOfClicks')
+    .setName('Share of Clicks')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('shareOfSpend')
+    .setName('Share of Spend')
+    .setType(types.PERCENT);
+
+
+  fields
+    .newMetric()
+    .setId('averagePosition')
+    .setName('Average Position')
+    .setType(types.NUMBER);
 
   return fields;
 }
@@ -562,6 +645,9 @@ function getFields(request) {
     case SEGMENTED_SHARE:
       fields = getMarketShareFields(true);
       break;
+    case ALL_SHARE:
+      fields = getAllMarketShareFields();
+      break;
     case ST_DETAIL:
       fields = getSearchTermDetailAndOpportunitiesFields(false);
       break;
@@ -602,7 +688,7 @@ function validateConfig(configParams) {
   if (!configParams.apiEndpoint) {
     cc.newUserError().setText('Please select an enpoint for your dataset.').throwException();
   }
-  if (isSegmentedDateset(configParams.datasetType) && (!configParams.searchTermGroups || configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '').length === 0)) {
+  if (isSegmentedDataset(configParams.datasetType) && (!configParams.searchTermGroups || configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '').length === 0)) {
     cc.newUserError().setText('You have chosen a segmented endpoint. Please add comma-separated search term groups to segment by.').throwException();
   }
   configParams.device = configParams.device || DEFAULTS.device;
@@ -645,7 +731,7 @@ function getData(request) {
     var device = configParams.device;
     var adType = configParams.adType;
     var isWholeMarket = configParams.isWholeMarket;
-    var isSegmentedResponse = isSegmentedDateset(configParams.datasetType);
+    var isSegmentedResponse = isSegmentedDataset(configParams.datasetType);
     var searchTermGroupSegments = isSegmentedResponse ? configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '') : [configParams.searchTermGroups];
     var data = searchTermGroupSegments.flatMap(function (segment) {
       var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
@@ -656,7 +742,8 @@ function getData(request) {
         .withAdditionalFilters('competitor', configParams.competitors)
         .withAdditionalFilters('kg', segment)
         .withAdditionalFilters('searchterm', configParams.searchTerms)
-        .withAdditionalFilters('infringementrule', configParams.infringementRuleIds);
+        .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
+        .withAdditionalFilters('isTotal', configParams.isTotal);
       apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
       console.log('Formatting data for requested fields.');
       var dt = getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
@@ -717,7 +804,7 @@ function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFil
     accountId,
     '/',
     endpointWithFilters.endpoint,
-    '/all?periodstart=',
+    '?periodstart=',
     startDate,
     '&periodend=',
     endDate,
@@ -769,6 +856,8 @@ function getMappedData(outer, inner, requestedField, segment) {
       return outer.TopCompetitor;
     case 'searchTerm':
       return outer.SearchTerm;
+    case 'searchTermGroup':
+      return outer.GroupName;
     case 'date':
       return transformDate(inner.Date);
     case 'value':
@@ -779,6 +868,8 @@ function getMappedData(outer, inner, requestedField, segment) {
       return outer.SearchTerms;
     case 'estimatedImpressions':
       return outer.EstimatedImpressions;
+    case 'totalImpressions':
+      return outer.TotalImpressions;
     case 'estimatedClicks':
       return outer.EstimatedClicks;
     case 'averagePosition':
@@ -831,6 +922,12 @@ function getMappedData(outer, inner, requestedField, segment) {
       return outer.Price;
     case 'image':
       return outer.Image;
+    case 'location':
+      return outer.LocationName;
+    case 'device':
+      return outer.Device;
+    case 'adType':
+      return outer.AdType;
     default:
       return '';
   }
