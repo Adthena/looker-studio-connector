@@ -50,20 +50,20 @@ const TOP_PLAS = 'top_plas';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
 const INFRINGEMENTS = 'infringements';
 const TREND_OPTIONS = [
-  new MenuOption('Share of Clicks', 'share-of-clicks-trend/all'),
-  new MenuOption('Share of Spend', 'share-of-spend-trend/all'),
-  new MenuOption('Share of Impressions', 'impression-share-trend/all'),
-  new MenuOption('Average Position', 'average-position-trend/all'),
-  new MenuOption('Average CPC', 'average-cpc-trend/all')
+  new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
+  new MenuOption('Share of Spend', 'share-of-spend-trend'),
+  new MenuOption('Share of Impressions', 'impression-share-trend'),
+  new MenuOption('Average Position', 'average-position-trend'),
+  new MenuOption('Average CPC', 'average-cpc-trend')
 ];
 const SHARE_OPTIONS = [
-  new MenuOption('Market Share', 'market-share/all')
+  new MenuOption('Market Share', 'market-share')
 ];
 const ALL_SHARE_OPTIONS = [
-  new MenuOption('Market Share for All Groups and Locations', 'market-share/groups-and-locations')
+  new MenuOption('Market Share for All Groups and Locations', 'market-share-groups-and-locations')
 ];
 const SEARCH_TERM_DETAIL_OPTIONS = [
-  new MenuOption('Search Term Detail', 'search-term-detail/all')
+  new MenuOption('Search Term Detail', 'search-term-detail')
 ];
 const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
   new MenuOption('All Opportunities', 'search-term-opportunities-1'),
@@ -75,15 +75,27 @@ const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
   new MenuOption('Underperforming Google Ads', 'search-term-opportunities-7')
 ];
 const TOP_ADS_OPTIONS = [
-  new MenuOption('Top Adverts', 'top-adverts/all')
+  new MenuOption('Top Adverts', 'top-adverts')
 ];
 const TOP_PLAS_OPTIONS = [
-  new MenuOption('Top PLAs (Coming Soon)', 'top-pla/all')
+  new MenuOption('Top PLAs (Coming Soon)', 'top-pla')
 ];
 const INFRINGEMENTS_OPTIONS = [
   new MenuOption('Infringements', 'infringement')
 ];
 const VIRTUAL_ENDPOINT_MAPPINGS = {
+  // trends
+  'share-of-clicks-trend': new EndpointWithFilters('share-of-clicks-trend/all'),
+  'share-of-spend-trend': new EndpointWithFilters('share-of-spend-trend/all'),
+  'impression-share-trend': new EndpointWithFilters('impression-share-trend/all'),
+  'average-position-trend': new EndpointWithFilters('average-position-trend/all'),
+  'average-cpc-trend': new EndpointWithFilters('average-cpc-trend/all'),
+  // market share
+  'market-share': new EndpointWithFilters('market-share/all'),
+  'market-share-groups-and-locations': new EndpointWithFilters('market-share/groups-and-locations'),
+  // search term detail
+  'search-term-detail': new EndpointWithFilters('search-term-detail/all'),
+  // search term opportunities
   'search-term-opportunities-1': new EndpointWithFilters('search-term-opportunities/all'),
   'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities/all', 'segment=missing_brand_terms', ['device=total']),
   'search-term-opportunities-3': new EndpointWithFilters('search-term-opportunities/all', 'segment=new_terms', ['device=total']),
@@ -91,6 +103,11 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities/all', 'segment=low_cost_terms', ['device=total']),
   'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities/all', 'segment=not_in_adwords_terms', ['device=total']),
   'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities/all', 'segment=underperforming_adwords_terms', ['device=total']),
+  // top ads
+  'top-adverts': new EndpointWithFilters('top-adverts/all'),
+  // top pla
+  'top-pla': new EndpointWithFilters('top-pla/all'),
+  // infringements
   'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker')
 };
 
