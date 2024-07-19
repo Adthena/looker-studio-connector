@@ -53,6 +53,7 @@ const TREND_OPTIONS = [
   new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
   new MenuOption('Share of Spend', 'share-of-spend-trend'),
   new MenuOption('Share of Impressions', 'impression-share-trend'),
+  new MenuOption('Frequency', 'frequency-trend'),
   new MenuOption('Average Position', 'average-position-trend'),
   new MenuOption('Average CPC', 'average-cpc-trend')
 ];
@@ -88,6 +89,7 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'share-of-clicks-trend': new EndpointWithFilters('share-of-clicks-trend/all'),
   'share-of-spend-trend': new EndpointWithFilters('share-of-spend-trend/all'),
   'impression-share-trend': new EndpointWithFilters('impression-share-trend/all'),
+  'frequency-trend': new EndpointWithFilters('frequency-trend/all'),
   'average-position-trend': new EndpointWithFilters('average-position-trend/all'),
   'average-cpc-trend': new EndpointWithFilters('average-cpc-trend/all'),
   // market share
