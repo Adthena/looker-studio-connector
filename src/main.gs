@@ -46,14 +46,12 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
-    .addOption(config.newOptionBuilder().setLabel('Google Shopping (Coming Soon)').setValue(TOP_PLAS))
+    .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if (configParams.datasetType === TOP_PLAS) {
-      cc.newUserError().setText('Google Shopping is coming soon. Please choose a different dataset type.').throwException();
     }
     var endpoint = config
       .newSelectSingle()
@@ -165,6 +163,22 @@ function addBasicConfigOptions(config, datasetType) {
     .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
     .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
     .setAllowOverride(true);
+
+  if (datasetType === TOP_PLAS) {
+    config
+      .newTextInput()
+      .setId('page')
+      .setName('Page')
+      .setHelpText('A zero-based page number. Default: 0')
+      .setAllowOverride(true);
+
+    config
+      .newTextInput()
+      .setId('pageSize')
+      .setName('Page Size')
+      .setHelpText('The page size to request. Default: 50')
+      .setAllowOverride(true);
+  }
 }
 
 function getMarketShareFields(isSegmented) {
@@ -512,26 +526,38 @@ function getTopPlasFields() {
 
   fields
     .newMetric()
-    .setId('marketCoverage')
-    .setName('Market Coverage')
-    .setType(types.PERCENT);
+    .setId('estimatedImpressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('searchTerms')
+    .setName('Search Terms')
+    .setType(types.NUMBER);
 
   fields
     .newMetric()
     .setId('price')
     .setName('Price')
-    .setType(types.TEXT);
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('oldPrice')
+    .setName('Old Price')
+    .setType(types.NUMBER);
 
   fields
     .newDimension()
     .setId('firstSeen')
-    .setName('First Seen')
+    .setName('First Appearance')
     .setType(types.YEAR_MONTH_DAY);
 
   fields
     .newDimension()
     .setId('lastSeen')
-    .setName('Last Seen')
+    .setName('Last Appearance')
     .setType(types.YEAR_MONTH_DAY);
 
   fields
@@ -543,8 +569,38 @@ function getTopPlasFields() {
   fields
     .newMetric()
     .setId('displayLength')
-    .setName('Display Length')
+    .setName('Appearance Duration')
     .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('tag')
+    .setName('Tag')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('returnPolicy')
+    .setName('Return Policy')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('rating')
+    .setName('Rating')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('badge')
+    .setName('Badge')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('comparisonShoppingServices')
+    .setName('Comparison Shopping Services')
+    .setType(types.TEXT);
 
   return fields;
 }
@@ -743,7 +799,9 @@ function getData(request) {
         .withAdditionalFilters('kg', segment)
         .withAdditionalFilters('searchterm', configParams.searchTerms)
         .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
-        .withAdditionalFilters('isTotal', configParams.isTotal);
+        .withAdditionalFilters('isTotal', configParams.isTotal)
+        .withAdditionalFilters('page', configParams.page)
+        .withAdditionalFilters('pageSize', configParams.pageSize);
       apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
       console.log('Formatting data for requested fields.');
       var dt = getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
@@ -851,7 +909,7 @@ function getMappedData(outer, inner, requestedField, segment) {
   }
   switch (requestedField) {
     case 'competitor':
-      return outer.Competitor || outer.CompetitorDomain;
+      return outer.Competitor || outer.CompetitorDomain || outer.competitor;
     case 'topCompetitor':
       return outer.TopCompetitor;
     case 'searchTerm':
@@ -865,9 +923,9 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'competitors':
       return outer.Competitors;
     case 'searchTerms':
-      return outer.SearchTerms;
+      return outer.SearchTerms || outer.searchTerms;
     case 'estimatedImpressions':
-      return outer.EstimatedImpressions;
+      return outer.EstimatedImpressions || outer.impressions;
     case 'totalImpressions':
       return outer.TotalImpressions;
     case 'estimatedClicks':
@@ -883,11 +941,11 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'maxCpc':
       return outer.MaxCPC;
     case 'adId':
-      return outer.AdId;
+      return outer.AdId || outer.adId;
     case 'title':
-      return outer.Title;
+      return outer.Title || outer.title;
     case 'displayText':
-      return outer.DisplayText;
+      return outer.DisplayText || outer.displayText;
     case 'description':
       return outer.Description;
     case 'displayUrl':
@@ -895,15 +953,15 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'bestPosition':
       return outer.BestPosition;
     case 'frequency':
-      return handlePercentageResult(outer.Frequency);
+      return handlePercentageResult(outer.Frequency || outer.frequency);
     case 'marketCoverage':
       return handlePercentageResult(outer.MarketCoverage);
     case 'displayLength':
-      return outer.DisplayLength || outer.AppearanceDuration;
+      return outer.DisplayLength || outer.appearanceDuration;
     case 'firstSeen':
-      return transformDate(outer.FirstSeen || outer.FirstAppearance);
+      return transformDate(outer.FirstSeen || outer.FirstAppearance || outer.firstAppearance);
     case 'lastSeen':
-      return transformDate(outer.LastSeen || outer.LastAppearance);
+      return transformDate(outer.LastSeen || outer.LastAppearance || outer.lastAppearance);
     case 'ruleName':
       return outer.RuleName;
     case 'infringementId':
@@ -919,15 +977,27 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'evidenceLink':
       return outer.EvidenceLink;
     case 'price':
-      return outer.Price;
+      return outer.price;
+    case 'oldPrice':
+      return outer.oldPrice;
     case 'image':
-      return outer.Image;
+      return outer.image;
     case 'location':
       return outer.LocationName;
     case 'device':
       return outer.Device;
     case 'adType':
       return outer.AdType;
+    case 'tag':
+      return outer.tag;
+    case 'returnPolicy':
+      return outer.returnPolicy;
+    case 'rating':
+      return outer.rating;
+    case 'badge':
+      return outer.badge;
+    case 'comparisonShoppingServices':
+      return outer.comparisonShoppingServices;
     default:
       return '';
   }
@@ -946,7 +1016,9 @@ function getMappedData(outer, inner, requestedField, segment) {
 function getFormattedData(response, requestedFields, segment) {
   // get the field IDs and use them in getMappedData, because getId() is very expensive.
   var fields = requestedFields.asArray().map(f => f.getId());
-  return response.flatMap(function(comp) {
+  // new paged responses will be objects with a data field. Otherwise it's an array and we can flat map the actual response.
+  var data = response.data ? response.data : response;
+  return data.flatMap(function(comp) {
     if (comp.Data) {
       return comp.Data.map(
         function(point) {

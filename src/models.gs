@@ -79,7 +79,7 @@ const TOP_ADS_OPTIONS = [
   new MenuOption('Top Adverts', 'top-adverts')
 ];
 const TOP_PLAS_OPTIONS = [
-  new MenuOption('Top PLAs (Coming Soon)', 'top-pla')
+  new MenuOption('Top PLAs', 'top-pla')
 ];
 const INFRINGEMENTS_OPTIONS = [
   new MenuOption('Infringements', 'infringement')
@@ -108,7 +108,7 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   // top ads
   'top-adverts': new EndpointWithFilters('top-adverts/all'),
   // top pla
-  'top-pla': new EndpointWithFilters('top-pla/all'),
+  'top-pla': new EndpointWithFilters('google-shopping/v2'),
   // infringements
   'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker')
 };
