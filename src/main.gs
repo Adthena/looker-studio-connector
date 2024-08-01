@@ -801,7 +801,7 @@ function getData(request) {
         .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
         .withAdditionalFilters('isTotal', configParams.isTotal)
         .withAdditionalFilters('page', configParams.page)
-        .withAdditionalFilters('pageSize', configParams.pageSize);
+        .withAdditionalFilters('pagesize', configParams.pageSize);
       apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
       console.log('Formatting data for requested fields.');
       var dt = getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
