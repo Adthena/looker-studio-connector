@@ -602,6 +602,18 @@ function getTopPlasFields() {
     .setName('Comparison Shopping Services')
     .setType(types.TEXT);
 
+  fields
+    .newMetric()
+    .setId('total')
+    .setName('Total')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('pageCount')
+    .setName('Page Count')
+    .setType(types.NUMBER);
+
   return fields;
 }
 
@@ -998,6 +1010,13 @@ function getMappedData(outer, inner, requestedField, segment) {
       return outer.badge;
     case 'comparisonShoppingServices':
       return outer.comparisonShoppingServices;
+    case 'total':
+      return outer.total;
+    case 'pageCount':
+      var total = outer.total;
+      var pageSize = outer.pageSize;
+      var adjustment = total % pageSize == 0 ? 0 : 1;
+      return Math.floor(total / pageSize) + adjustment;
     default:
       return '';
   }
@@ -1018,15 +1037,18 @@ function getFormattedData(response, requestedFields, segment) {
   var fields = requestedFields.asArray().map(f => f.getId());
   // new paged responses will be objects with a data field. Otherwise it's an array and we can flat map the actual response.
   var data = response.data ? response.data : response;
+  // if it's a new paged response, keep everything except the data as metadata.
+  var metaData = response.data ? (({ data, ...object }) => object)(response) : {};
   return data.flatMap(function(comp) {
-    if (comp.Data) {
-      return comp.Data.map(
+    var outer = {...comp, ...metaData};
+    if (outer.Data) {
+      return outer.Data.map(
         function(point) {
-          row = fields.map(requestedField => getMappedData(comp, point, requestedField, segment));
+          row = fields.map(requestedField => getMappedData(outer, point, requestedField, segment));
           return { values: row };
         });
     } else {
-      return [{ values: fields.map(requestedField => getMappedData(comp, comp, requestedField, segment)) }];
+      return [{ values: fields.map(requestedField => getMappedData(outer, outer, requestedField, segment)) }];
     }
   });
 }
