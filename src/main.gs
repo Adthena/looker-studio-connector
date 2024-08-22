@@ -47,7 +47,8 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
-    .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS));
+    .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS))
+    .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
@@ -59,12 +60,12 @@ function getConfig(request) {
       .setName('API Endpoint')
       .setHelpText('The API endpoint gives you a choice of what data to pull into your report.');
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
-    endpointOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
+    endpointOptions.menuOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
 
     if (isSegmentedDataset(configParams.datasetType)) {
       // enable advanced filtering when the user chooses a segmented dataset type and don't let the user remove it
       configParams.isAdvancedFiltering = 'true';
-    } else if (isNonAdvancedDataset(configParams.datasetType)) {
+    } else if (isBasicDataset(configParams.datasetType)) {
       configParams.isAdvancedFiltering = 'false';
     } else {
       config
@@ -75,47 +76,9 @@ function getConfig(request) {
       .setIsDynamic(true);
     }
 
+    addConfigOptions(config, endpointOptions.filterOptions.basic);
     if (configParams.isAdvancedFiltering === 'true') {
-      addBasicConfigOptions(config, configParams.datasetType);
-
-      config
-        .newTextInput()
-        .setId('searchTermGroups')
-        .setName('Search Term Groups')
-        .setHelpText('A comma-separated list of search term groups.')
-        .setAllowOverride(true);
-
-      config
-        .newTextInput()
-        .setId('searchTerms')
-        .setName('Search Terms')
-        .setHelpText('A comma-separated list of search terms.')
-        .setAllowOverride(true);
-
-      config
-        .newTextInput()
-        .setId('competitorGroups')
-        .setName('Competitor Groups')
-        .setHelpText('A comma-separated list of competitor groups.')
-        .setAllowOverride(true);
-
-      config
-        .newTextInput()
-        .setId('competitors')
-        .setName('Competitors')
-        .setHelpText('A comma-separated list of domains.')
-        .setAllowOverride(true);
-
-      if (configParams.datasetType === INFRINGEMENTS) {
-        config
-          .newTextInput()
-          .setId('infringementRuleIds')
-          .setName('Infringement Rule IDs')
-          .setHelpText('A comma-separated list of infringement rule IDs.')
-          .setAllowOverride(true);
-      }
-    } else {
-      addBasicConfigOptions(config, configParams.datasetType);
+      addConfigOptions(config, endpointOptions.filterOptions.advanced);
     }
   }
 
@@ -124,61 +87,116 @@ function getConfig(request) {
   return config.build();
 }
 
-function addBasicConfigOptions(config, datasetType) {
-  if (!isBasicDataset(datasetType)) {
-    config
-      .newSelectSingle()
-      .setId('device')
-      .setName('Device')
-      .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
-      .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
-      .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
-      .setAllowOverride(true);
-
-    config
-      .newSelectSingle()
-      .setId('adType')
-      .setName('Ad Type')
-      .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('paid'))
-      .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
-      .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
-      .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
-      .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
-      .setAllowOverride(true);
-  } else {
-    config
-      .newSelectSingle()
-      .setId('isTotal')
-      .setName('Share aggregation type')
-      .addOption(config.newOptionBuilder().setLabel('Total').setValue('true'))
-      .addOption(config.newOptionBuilder().setLabel('By Device').setValue('false'))
-      .setHelpText('Whether to get total market share data or market share aggregated by device.')
-      .setAllowOverride(true);
-  }
-
-  config
-    .newSelectSingle()
-    .setId('isWholeMarket')
-    .setName('Market Type')
-    .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
-    .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
-    .setAllowOverride(true);
-
-  if (datasetType === TOP_PLAS) {
-    config
-      .newTextInput()
-      .setId('page')
-      .setName('Page')
-      .setHelpText('A zero-based page number. Default: 0')
-      .setAllowOverride(true);
-
-    config
-      .newTextInput()
-      .setId('pageSize')
-      .setName('Page Size')
-      .setHelpText('The page size to request. Default: 50')
-      .setAllowOverride(true);
-  }
+function addConfigOptions(config, filterOptions) {
+  filterOptions.forEach(filterOption => {
+    switch (filterOption.id) {
+      case DEVICE:
+        config
+          .newSelectSingle()
+          .setId('device')
+          .setName('Device')
+          .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
+          .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
+          .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+          .setAllowOverride(true);
+        break;
+      case AD_TYPE:
+        config
+          .newSelectSingle()
+          .setId('adType')
+          .setName('Ad Type')
+          .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('paid'))
+          .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
+          .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
+          .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
+          .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+          .setAllowOverride(true);
+        break;
+      case IS_TOTAL:
+        config
+          .newSelectSingle()
+          .setId('isTotal')
+          .setName('Share aggregation type')
+          .addOption(config.newOptionBuilder().setLabel('Total').setValue('true'))
+          .addOption(config.newOptionBuilder().setLabel('By Device').setValue('false'))
+          .setHelpText('Whether to get total market share data or market share aggregated by device.')
+          .setAllowOverride(true);
+        break;
+      case IS_WHOLE_MARKET:
+        config
+          .newSelectSingle()
+          .setId('isWholeMarket')
+          .setName('Market Type')
+          .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
+          .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
+          .setAllowOverride(true);
+        break;
+      case PAGE:
+        config
+          .newTextInput()
+          .setId('page')
+          .setName('Page')
+          .setHelpText('A zero-based page number. Default: 0')
+          .setAllowOverride(true);
+        break;
+      case PAGE_SIZE:
+        config
+          .newTextInput()
+          .setId('pageSize')
+          .setName('Page Size')
+          .setHelpText('The page size to request. Default: 50')
+          .setAllowOverride(true);
+        break;
+      case SEARCH_TERM_GROUPS:
+        config
+          .newTextInput()
+          .setId('searchTermGroups')
+          .setName('Search Term Groups')
+          .setHelpText('A comma-separated list of search term groups.')
+          .setAllowOverride(true);
+        break;
+      case SEARCH_TERMS:
+        config
+          .newTextInput()
+          .setId('searchTerms')
+          .setName('Search Terms')
+          .setHelpText('A comma-separated list of search terms.')
+          .setAllowOverride(true);
+        break;
+      case COMPETITOR_GROUPS:
+        config
+          .newTextInput()
+          .setId('competitorGroups')
+          .setName('Competitor Groups')
+          .setHelpText('A comma-separated list of competitor groups.')
+          .setAllowOverride(true);
+        break;
+      case COMPETITORS:
+        config
+          .newTextInput()
+          .setId('competitors')
+          .setName('Competitors')
+          .setHelpText('A comma-separated list of domains.')
+          .setAllowOverride(true);
+        break;
+      case INFRINGEMENT_RULE_IDS:
+        config
+          .newTextInput()
+          .setId('infringementRuleIds')
+          .setName('Infringement Rule IDs')
+          .setHelpText('A comma-separated list of infringement rule IDs.')
+          .setAllowOverride(true);
+        break;
+      default:
+        cc.newUserError()
+          .setDebugText('Unknown filter id: ' + filterOption.id)
+          .setText(
+            'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
+          )
+          .throwException();
+        break;
+    }
+  });
 }
 
 function getMarketShareFields(isSegmented) {
@@ -697,6 +715,68 @@ function getInfringementsFields() {
   return fields;
 }
 
+function getBrandActivatorFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('accountId')
+    .setName('Account ID')
+    .setType(types.NUMBER);
+
+  fields
+    .newDimension()
+    .setId('keyword')
+    .setName('Keyword')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('baDate')
+    .setName('Date')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('currency')
+    .setName('Currency')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('savings')
+    .setName('Savings')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('inNegativeList')
+    .setName('In Negative List')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitorCount')
+    .setName('Competitor Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total')
+    .setName('Total')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('pageCount')
+    .setName('Page Count')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
   var fields = null;
@@ -733,6 +813,9 @@ function getFields(request) {
       break;
     case INFRINGEMENTS:
       fields = getInfringementsFields();
+      break;
+    case BRAND_ACTIVATOR:
+      fields = getBrandActivatorFields();
       break;
     default:
       cc.newUserError()
@@ -980,6 +1063,8 @@ function getMappedData(outer, inner, requestedField, segment) {
       return outer.InfringementId;
     case 'infringementDateTime':
       return transformInfringementDate(outer.Date) + transformTime(outer.Time);
+    case 'baDate':
+      return transformInfringementDate(outer.Date);
     case 'position':
       return outer.Position;
     case 'destinationUrl':
@@ -1017,6 +1102,18 @@ function getMappedData(outer, inner, requestedField, segment) {
       var pageSize = outer.pageSize;
       var adjustment = total % pageSize == 0 ? 0 : 1;
       return Math.floor(total / pageSize) + adjustment;
+    case 'accountId':
+      return outer.AccountId;
+    case 'keyword':
+      return outer.Keyword;
+    case 'currency':
+      return outer.Currency;
+    case 'savings':
+      return outer.Savings;
+    case 'inNegativeList':
+      return outer.InNegativeList;
+    case 'competitorCount': // can be merged with competitors above.
+      return outer.CompetitorCount;
     default:
       return '';
   }

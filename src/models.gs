@@ -5,6 +5,12 @@ function MenuOption(label, virtualEndpoint) {
   return this;
 }
 
+function FilterOption(id) {
+  this.id = id;
+
+  return this;
+}
+
 function EndpointWithFilters(endpoint, filters = null, forbiddenFilters = []) {
   this.endpoint = endpoint;
   this.filters = filters;
@@ -38,6 +44,22 @@ const DEFAULTS = {
   isWholeMarket: 'true'
 };
 
+// start: filter ids
+// basic
+const DEVICE = 'device';
+const AD_TYPE = 'adType';
+const IS_TOTAL = 'isTotal';
+const IS_WHOLE_MARKET = 'isWholeMarket';
+const PAGE = 'page';
+const PAGE_SIZE = 'pageSize';
+// advanced
+const SEARCH_TERM_GROUPS = 'searchTermGroups';
+const SEARCH_TERMS = 'searchTerms';
+const COMPETITOR_GROUPS = 'competitorGroups';
+const COMPETITORS = 'competitors';
+const INFRINGEMENT_RULE_IDS = 'infringementRuleIds';
+// end: filter ids
+
 const TREND = 'trend';
 const SEGMENTED_TREND = 'segmented_trend';
 const SHARE = 'share';
@@ -49,41 +71,173 @@ const TOP_ADS = 'top_ads';
 const TOP_PLAS = 'top_plas';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
 const INFRINGEMENTS = 'infringements';
-const TREND_OPTIONS = [
-  new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
-  new MenuOption('Share of Spend', 'share-of-spend-trend'),
-  new MenuOption('Share of Impressions', 'impression-share-trend'),
-  new MenuOption('Frequency', 'frequency-trend'),
-  new MenuOption('Average Position', 'average-position-trend'),
-  new MenuOption('Average CPC', 'average-cpc-trend')
-];
-const SHARE_OPTIONS = [
-  new MenuOption('Market Share', 'market-share')
-];
-const ALL_SHARE_OPTIONS = [
-  new MenuOption('Market Share for All Groups and Locations', 'market-share-groups-and-locations')
-];
-const SEARCH_TERM_DETAIL_OPTIONS = [
-  new MenuOption('Search Term Detail', 'search-term-detail')
-];
-const SEARCH_TERM_OPPORTUNITIES_OPTIONS = [
-  new MenuOption('All Opportunities', 'search-term-opportunities-1'),
-  new MenuOption('Missing Brand Terms', 'search-term-opportunities-2'),
-  new MenuOption('New Terms', 'search-term-opportunities-3'),
-  new MenuOption('Missing Organic Terms', 'search-term-opportunities-4'),
-  new MenuOption('Low Cost Terms', 'search-term-opportunities-5'),
-  new MenuOption('Not In Google Ads', 'search-term-opportunities-6'),
-  new MenuOption('Underperforming Google Ads', 'search-term-opportunities-7')
-];
-const TOP_ADS_OPTIONS = [
-  new MenuOption('Top Adverts', 'top-adverts')
-];
-const TOP_PLAS_OPTIONS = [
-  new MenuOption('Top PLAs', 'top-pla')
-];
-const INFRINGEMENTS_OPTIONS = [
-  new MenuOption('Infringements', 'infringement')
-];
+const BRAND_ACTIVATOR = 'brand_activator';
+const TREND_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
+    new MenuOption('Share of Spend', 'share-of-spend-trend'),
+    new MenuOption('Share of Impressions', 'impression-share-trend'),
+    new MenuOption('Frequency', 'frequency-trend'),
+    new MenuOption('Average Position', 'average-position-trend'),
+    new MenuOption('Average CPC', 'average-cpc-trend')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  }
+};
+const SHARE_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Market Share', 'market-share')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  }
+};
+const ALL_SHARE_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Market Share for All Groups and Locations', 'market-share-groups-and-locations')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(IS_TOTAL),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: []
+  }
+};
+const SEARCH_TERM_DETAIL_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Search Term Detail', 'search-term-detail')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  }
+};
+const SEARCH_TERM_OPPORTUNITIES_OPTIONS = {
+  menuOptions: [
+    new MenuOption('All Opportunities', 'search-term-opportunities-1'),
+    new MenuOption('Missing Brand Terms', 'search-term-opportunities-2'),
+    new MenuOption('New Terms', 'search-term-opportunities-3'),
+    new MenuOption('Missing Organic Terms', 'search-term-opportunities-4'),
+    new MenuOption('Low Cost Terms', 'search-term-opportunities-5'),
+    new MenuOption('Not In Google Ads', 'search-term-opportunities-6'),
+    new MenuOption('Underperforming Google Ads', 'search-term-opportunities-7')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  }
+};
+const TOP_ADS_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Top Adverts', 'top-adverts')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  }
+};
+const TOP_PLAS_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Top PLAs', 'top-pla')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET),
+      new FilterOption(PAGE),
+      new FilterOption(PAGE_SIZE)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  }
+};
+const INFRINGEMENTS_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Infringements', 'infringement')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(DEVICE),
+      new FilterOption(AD_TYPE),
+      new FilterOption(IS_WHOLE_MARKET)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS),
+      new FilterOption(INFRINGEMENT_RULE_IDS)
+    ]
+  }
+};
+const BRAND_ACTIVATOR_OPTIONS = {
+  menuOptions: [
+    new MenuOption('Daily Savings', 'ba-daily-savings')
+  ],
+  filterOptions: {
+    basic: [
+      new FilterOption(PAGE),
+      new FilterOption(PAGE_SIZE)
+    ],
+    advanced: [
+      new FilterOption(SEARCH_TERMS)
+    ]
+  }
+};
 const VIRTUAL_ENDPOINT_MAPPINGS = {
   // trends
   'share-of-clicks-trend': new EndpointWithFilters('share-of-clicks-trend/all'),
@@ -110,7 +264,9 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   // top pla
   'top-pla': new EndpointWithFilters('google-shopping/v2'),
   // infringements
-  'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker')
+  'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker'),
+  // brand activator
+  'ba-daily-savings': new EndpointWithFilters('brand-activator/daily-savings')
 };
 
 function getOptionsForDatasetType(datasetType) {
@@ -137,6 +293,8 @@ function getOptionsForDatasetType(datasetType) {
       return SEARCH_TERM_OPPORTUNITIES_OPTIONS;
     case INFRINGEMENTS:
       return INFRINGEMENTS_OPTIONS;
+    case BRAND_ACTIVATOR:
+      return BRAND_ACTIVATOR_OPTIONS;
     default:
       cc.newUserError()
         .setText('Please choose a valid dataset type.')
@@ -150,10 +308,6 @@ function getEndpointWithFilters(virtualEndpoint) {
 
 function isSegmentedDataset(datasetType) {
   return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE || datasetType === SEGMENTED_ST_DETAIL;
-}
-
-function isNonAdvancedDataset(datasetType) {
-  return datasetType === ALL_SHARE;
 }
 
 function isBasicDataset(datasetType) {
