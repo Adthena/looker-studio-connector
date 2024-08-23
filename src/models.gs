@@ -3,13 +3,31 @@ function MenuOption(label, virtualEndpoint) {
   this.virtualEndpoint = virtualEndpoint;
 
   return this;
-}
+};
 
 function FilterOption(id) {
   this.id = id;
 
   return this;
-}
+};
+
+function FilterOptionsConfig(basic, advanced) {
+  this.basic = basic;
+  this.advanced = advanced;
+
+  return this;
+};
+
+FilterOptionsConfig.prototype.isBasicDataset = function() {
+  return this.advanced.length === 0; // basic datasets have noadvanced filtering
+};
+
+function DatasetOptions(menuOptions, filterOptions) {
+  this.menuOptions = menuOptions;
+  this.filterOptions = filterOptions;
+
+  return this;
+};
 
 function EndpointWithFilters(endpoint, filters = null, forbiddenFilters = []) {
   this.endpoint = endpoint;
@@ -17,7 +35,7 @@ function EndpointWithFilters(endpoint, filters = null, forbiddenFilters = []) {
   this.forbiddenFilters = forbiddenFilters;
 
   return this;
-}
+};
 
 EndpointWithFilters.prototype.withAdditionalFilters = function(filterKey, filterValues) {
   if (filterValues === undefined || filterValues.trim() === '') {
@@ -72,8 +90,8 @@ const TOP_PLAS = 'top_plas';
 const ST_OPPORTUNITIES = 'search_term_opportunities';
 const INFRINGEMENTS = 'infringements';
 const BRAND_ACTIVATOR = 'brand_activator';
-const TREND_OPTIONS = {
-  menuOptions: [
+const TREND_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Share of Clicks', 'share-of-clicks-trend'),
     new MenuOption('Share of Spend', 'share-of-spend-trend'),
     new MenuOption('Share of Impressions', 'impression-share-trend'),
@@ -81,70 +99,70 @@ const TREND_OPTIONS = {
     new MenuOption('Average Position', 'average-position-trend'),
     new MenuOption('Average CPC', 'average-cpc-trend')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS)
     ]
-  }
-};
-const SHARE_OPTIONS = {
-  menuOptions: [
+  )
+);
+const SHARE_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Market Share', 'market-share')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS)
     ]
-  }
-};
-const ALL_SHARE_OPTIONS = {
-  menuOptions: [
+  )
+);
+const ALL_SHARE_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Market Share for All Groups and Locations', 'market-share-groups-and-locations')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(IS_TOTAL),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: []
-  }
-};
-const SEARCH_TERM_DETAIL_OPTIONS = {
-  menuOptions: [
+    []
+  )
+);
+const SEARCH_TERM_DETAIL_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Search Term Detail', 'search-term-detail')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS)
     ]
-  }
-};
-const SEARCH_TERM_OPPORTUNITIES_OPTIONS = {
-  menuOptions: [
+  )
+);
+const SEARCH_TERM_OPPORTUNITIES_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('All Opportunities', 'search-term-opportunities-1'),
     new MenuOption('Missing Brand Terms', 'search-term-opportunities-2'),
     new MenuOption('New Terms', 'search-term-opportunities-3'),
@@ -153,91 +171,91 @@ const SEARCH_TERM_OPPORTUNITIES_OPTIONS = {
     new MenuOption('Not In Google Ads', 'search-term-opportunities-6'),
     new MenuOption('Underperforming Google Ads', 'search-term-opportunities-7')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS)
     ]
-  }
-};
-const TOP_ADS_OPTIONS = {
-  menuOptions: [
+  )
+);
+const TOP_ADS_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Top Adverts', 'top-adverts')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS)
     ]
-  }
-};
-const TOP_PLAS_OPTIONS = {
-  menuOptions: [
+  )
+);
+const TOP_PLAS_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Top PLAs', 'top-pla')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET),
       new FilterOption(PAGE),
       new FilterOption(PAGE_SIZE)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS)
     ]
-  }
-};
-const INFRINGEMENTS_OPTIONS = {
-  menuOptions: [
+  )
+);
+const INFRINGEMENTS_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Infringements', 'infringement')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(DEVICE),
       new FilterOption(AD_TYPE),
       new FilterOption(IS_WHOLE_MARKET)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERM_GROUPS),
       new FilterOption(SEARCH_TERMS),
       new FilterOption(COMPETITOR_GROUPS),
       new FilterOption(COMPETITORS),
       new FilterOption(INFRINGEMENT_RULE_IDS)
     ]
-  }
-};
-const BRAND_ACTIVATOR_OPTIONS = {
-  menuOptions: [
+  )
+);
+const BRAND_ACTIVATOR_OPTIONS = new DatasetOptions(
+  [
     new MenuOption('Daily Savings', 'ba-daily-savings')
   ],
-  filterOptions: {
-    basic: [
+  new FilterOptionsConfig(
+    [
       new FilterOption(PAGE),
       new FilterOption(PAGE_SIZE)
     ],
-    advanced: [
+    [
       new FilterOption(SEARCH_TERMS)
     ]
-  }
-};
+  )
+);
 const VIRTUAL_ENDPOINT_MAPPINGS = {
   // trends
   'share-of-clicks-trend': new EndpointWithFilters('share-of-clicks-trend/all'),
@@ -308,8 +326,4 @@ function getEndpointWithFilters(virtualEndpoint) {
 
 function isSegmentedDataset(datasetType) {
   return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE || datasetType === SEGMENTED_ST_DETAIL;
-}
-
-function isBasicDataset(datasetType) {
-  return datasetType === ALL_SHARE;
 }

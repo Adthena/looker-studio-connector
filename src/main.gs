@@ -65,7 +65,7 @@ function getConfig(request) {
     if (isSegmentedDataset(configParams.datasetType)) {
       // enable advanced filtering when the user chooses a segmented dataset type and don't let the user remove it
       configParams.isAdvancedFiltering = 'true';
-    } else if (isBasicDataset(configParams.datasetType)) {
+    } else if (endpointOptions.filterOptions.isBasicDataset()) {
       configParams.isAdvancedFiltering = 'false';
     } else {
       config
