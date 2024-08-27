@@ -1020,7 +1020,7 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'searchTerms':
       return outer.SearchTerms || outer.searchTerms;
     case 'estimatedImpressions':
-      return outer.EstimatedImpressions || outer.impressions;
+      return outer.EstimatedImpressions || outer.impressions || outer.Impressions;
     case 'totalImpressions':
       return outer.TotalImpressions;
     case 'estimatedClicks':
@@ -1052,7 +1052,7 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'marketCoverage':
       return handlePercentageResult(outer.MarketCoverage);
     case 'displayLength':
-      return outer.DisplayLength || outer.appearanceDuration;
+      return outer.DisplayLength || outer.appearanceDuration || outer.AppearanceDuration;
     case 'firstSeen':
       return transformDate(outer.FirstSeen || outer.FirstAppearance || outer.firstAppearance);
     case 'lastSeen':
@@ -1074,11 +1074,11 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'evidenceLink':
       return outer.EvidenceLink;
     case 'price':
-      return outer.price;
+      return outer.price || outer.Price;
     case 'oldPrice':
-      return outer.oldPrice;
+      return outer.oldPrice || outer.OldPrice;
     case 'image':
-      return outer.image;
+      return outer.image || outer.Image;
     case 'location':
       return outer.LocationName;
     case 'device':
@@ -1086,20 +1086,20 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'adType':
       return outer.AdType;
     case 'tag':
-      return outer.tag;
+      return outer.tag || outer.Tag;
     case 'returnPolicy':
-      return outer.returnPolicy;
+      return outer.returnPolicy || outer.ReturnPolicy;
     case 'rating':
-      return outer.rating;
+      return outer.rating || outer.Rating;
     case 'badge':
-      return outer.badge;
+      return outer.badge || outer.Badge;
     case 'comparisonShoppingServices':
-      return outer.comparisonShoppingServices;
+      return outer.comparisonShoppingServices || outer.ComparisonShoppingServices;
     case 'total':
-      return outer.total;
+      return outer.total || outer.Total;
     case 'pageCount':
-      var total = outer.total;
-      var pageSize = outer.pageSize;
+      var total = outer.total || outer.Total;
+      var pageSize = outer.pageSize || outer.PageSize;
       var adjustment = total % pageSize == 0 ? 0 : 1;
       return Math.floor(total / pageSize) + adjustment;
     case 'accountId':
