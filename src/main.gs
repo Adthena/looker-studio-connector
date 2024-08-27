@@ -1130,10 +1130,19 @@ function getMappedData(outer, inner, requestedField, segment) {
 function getFormattedData(response, requestedFields, segment) {
   // get the field IDs and use them in getMappedData, because getId() is very expensive.
   var fields = requestedFields.asArray().map(f => f.getId());
-  // new paged responses will be objects with a data field. Otherwise it's an array and we can flat map the actual response.
-  var data = response.data ? response.data : response;
-  // if it's a new paged response, keep everything except the data as metadata.
-  var metaData = response.data ? (({ data, ...object }) => object)(response) : {};
+  var data = response;
+  var metaData = {};
+  if (response.data) {
+    // new paged responses will be objects with a data field. Otherwise it's an array and we can flat map the actual response.
+    data = response.data;
+    // if it's a new paged response, keep everything except the data as metadata.
+    metaData = (({ data, ...object }) => object)(response);
+  } else if (response.Data) {
+    // new paged responses will be objects with a data field. Otherwise it's an array and we can flat map the actual response.
+    data = response.Data;
+    // if it's a new paged response, keep everything except the data as metadata.
+    metaData = (({ Data, ...object }) => object)(response);
+  }
   return data.flatMap(function(comp) {
     var outer = {...comp, ...metaData};
     if (outer.Data) {
