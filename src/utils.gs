@@ -1,7 +1,7 @@
 function transformDate(date) {
-  if (/^([0-9]{4}-[0-9]{2}-[0-9]{2})$/) {
+  if (/^([0-9]{4}-[0-9]{2}-[0-9]{2})$/.test(date)) {
     return _transformCommonDate(date);
-  } else if (/^([0-9]{2}-[0-9]{2}-[0-9]{4})$/) {
+  } else if (/^([0-9]{2}-[0-9]{2}-[0-9]{4})$/.test(date)) {
     return _transformInfringementDate(date);
   } else {
     console.log('Unsupported date format detected: %s', date);
