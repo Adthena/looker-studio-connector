@@ -734,7 +734,7 @@ function getBrandActivatorFields() {
 
   fields
     .newDimension()
-    .setId('baDate')
+    .setId('date')
     .setName('Date')
     .setType(types.YEAR_MONTH_DAY);
 
@@ -1062,9 +1062,7 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'infringementId':
       return outer.InfringementId;
     case 'infringementDateTime':
-      return transformInfringementDate(outer.Date) + transformTime(outer.Time);
-    case 'baDate':
-      return transformInfringementDate(outer.Date);
+      return transformDate(outer.Date) + transformTime(outer.Time);
     case 'position':
       return outer.Position;
     case 'destinationUrl':
