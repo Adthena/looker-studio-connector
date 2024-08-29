@@ -856,6 +856,8 @@ function getSchema(request) {
 
 // https://developers.google.com/datastudio/connector/reference#getdata
 function getData(request) {
+  var userEmail = Session.getActiveUser().getEmail();
+  console.log('Running get data for user: %s', userEmail);
   var requestedFields;
   try {
     requestedFields = getFields(request).forIds(
