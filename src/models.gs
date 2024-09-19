@@ -244,7 +244,8 @@ const INFRINGEMENTS_OPTIONS = new DatasetOptions(
 );
 const BRAND_ACTIVATOR_OPTIONS = new DatasetOptions(
   [
-    new MenuOption('Daily Savings', 'ba-daily-savings')
+    new MenuOption('Daily Savings', 'ba-daily-savings'),
+    new MenuOption('Activity Logs', 'ba-activity-logs')
   ],
   new FilterOptionsConfig(
     [
@@ -284,7 +285,8 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   // infringements
   'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker'),
   // brand activator
-  'ba-daily-savings': new EndpointWithFilters('brand-activator/daily-savings')
+  'ba-daily-savings': new EndpointWithFilters('brand-activator/daily-savings'),
+  'ba-activity-logs': new EndpointWithFilters('brand-activator/activity-logs')
 };
 
 function getOptionsForDatasetType(datasetType) {

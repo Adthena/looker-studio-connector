@@ -777,8 +777,59 @@ function getBrandActivatorFields() {
   return fields;
 }
 
+function getBrandActivatorLogsFields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('searchTerm')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('event')
+    .setName('Event')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('reason')
+    .setName('Reason')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('details')
+    .setName('Details')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('dateTime')
+    .setName('Date & Time')
+    .setType(types.YEAR_MONTH_DAY_SECOND);
+
+  fields
+    .newMetric()
+    .setId('total')
+    .setName('Total')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('pageCount')
+    .setName('Page Count')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
+  var virtualEndpoint = request.configParams.apiEndpoint;
   var fields = null;
   switch(datasetType) {
     case TREND:
@@ -815,7 +866,23 @@ function getFields(request) {
       fields = getInfringementsFields();
       break;
     case BRAND_ACTIVATOR:
-      fields = getBrandActivatorFields();
+      // sub-switch for BA as endpoints come with different models
+      // TODO: Cleanup and reuse virtual endpoint strings.
+      switch(virtualEndpoint) {
+        case 'ba-daily-savings':
+          fields = getBrandActivatorFields();
+          break;
+        case 'ba-activity-logs':
+          fields = getBrandActivatorLogsFields();
+          break;
+        default:
+          cc.newUserError()
+            .setDebugText('Unknown virtual endpoint for brand activator: ' + virtualEndpoint)
+            .setText(
+              'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
+            )
+            .throwException();
+      }
       break;
     default:
       cc.newUserError()
@@ -1064,6 +1131,7 @@ function getMappedData(outer, inner, requestedField, segment) {
     case 'infringementId':
       return outer.InfringementId;
     case 'infringementDateTime':
+    case 'dateTime':
       return transformDate(outer.Date) + transformTime(outer.Time);
     case 'position':
       return outer.Position;
@@ -1114,6 +1182,12 @@ function getMappedData(outer, inner, requestedField, segment) {
       return outer.InNegativeList;
     case 'competitorCount': // can be merged with competitors above.
       return outer.CompetitorCount;
+    case 'event':
+      return outer.Event;
+    case 'reason':
+      return outer.Reason;
+    case 'details':
+      return outer.Details;
     default:
       return '';
   }
