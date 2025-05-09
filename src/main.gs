@@ -310,6 +310,11 @@ function getAllMarketShareFields() {
     .setName('Share of Spend')
     .setType(types.PERCENT);
 
+  fields
+    .newMetric()
+    .setId('shareOfImpressions')
+    .setName('Share of Impressions')
+    .setType(types.PERCENT);
 
   fields
     .newMetric()
@@ -1100,6 +1105,8 @@ function getMappedData(outer, inner, requestedField, segment) {
       return handlePercentageResult(outer.ShareOfClicks);
     case 'shareOfSpend':
       return handlePercentageResult(outer.ShareOfSpend);
+    case 'shareOfImpressions':
+      return handlePercentageResult(outer.ShareOfImpressions || outer.shareOfImpressions);
     case 'minCpc':
       return outer.MinCPC;
     case 'maxCpc':
