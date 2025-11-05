@@ -37,7 +37,8 @@ function getConfig(request) {
     .setName('Dataset')
     .setHelpText('Choose your dataset first.')
     .setIsDynamic(true)
-    .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND))
+    .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND_V2))
+    .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE))
@@ -53,6 +54,11 @@ function getConfig(request) {
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
+    } else if ([TREND].includes(configParams.datasetType)) {
+      config
+        .newInfo()
+        .setId('deprecationWarning')
+        .setText('You have chosen a dataset that uses the Adthena API V1. There is an alternative dataset that uses the API V2. Please consider switching to the new dataset. It provides more flexibility and will keep your reports future proof.');
     }
     var endpoint = config
       .newSelectSingle()
@@ -100,6 +106,16 @@ function addConfigOptions(config, filterOptions) {
           .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
           .setAllowOverride(true);
         break;
+      case DEVICE_V2:
+        config
+          .newSelectMultiple()
+          .setId('deviceV2')
+          .setName("Device")
+          .setHelpText('Select one or more devices.')
+          .addOption(config.newOptionBuilder().setLabel('Desktop').setValue('desktop'))
+          .addOption(config.newOptionBuilder().setLabel('Mobile').setValue('mobile'))
+          .setAllowOverride(true);
+        break;
       case AD_TYPE:
         config
           .newSelectSingle()
@@ -110,6 +126,17 @@ function addConfigOptions(config, filterOptions) {
           .addOption(config.newOptionBuilder().setLabel('PLA + Text Ad').setValue('totalpaid'))
           .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
           .addOption(config.newOptionBuilder().setLabel('Total').setValue('total'))
+          .setAllowOverride(true);
+        break;
+      case AD_TYPE_V2:
+        config
+          .newSelectMultiple()
+          .setId('adTypeV2')
+          .setName("Ad Type")
+          .setHelpText('Select one or more ad types.')
+          .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('textad'))
+          .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
+          .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
           .setAllowOverride(true);
         break;
       case IS_TOTAL:
@@ -126,6 +153,15 @@ function addConfigOptions(config, filterOptions) {
         config
           .newSelectSingle()
           .setId('isWholeMarket')
+          .setName('Market Type')
+          .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
+          .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
+          .setAllowOverride(true);
+        break;
+      case IS_WHOLE_MARKET_V2:
+        config
+          .newSelectSingle()
+          .setId('isWholeMarketV2')
           .setName('Market Type')
           .addOption(config.newOptionBuilder().setLabel('Whole Market').setValue('true'))
           .addOption(config.newOptionBuilder().setLabel('My Terms').setValue('false'))
@@ -185,6 +221,49 @@ function addConfigOptions(config, filterOptions) {
           .setId('infringementRuleIds')
           .setName('Infringement Rule IDs')
           .setHelpText('A comma-separated list of infringement rule IDs.')
+          .setAllowOverride(true);
+        break;
+      case SEGMENT_BY:
+        config
+          .newSelectMultiple()
+          .setId('segmentBy')
+          .setName("Segment By")
+          .setHelpText('Select fields to segment data by.')
+          .addOption(config.newOptionBuilder().setLabel('Ad Type').setValue('ad_type'))
+          .addOption(config.newOptionBuilder().setLabel('Device').setValue('device'))
+          .setAllowOverride(true);
+        break;
+      case PRIMARY_DIMENSION:
+        config
+          .newSelectSingle()
+          .setId('primaryDimension')
+          .setName('Primary Dimension')
+          .setHelpText('The primary dimension used for sorting and limiting domains in market trends.')
+          .addOption(config.newOptionBuilder().setLabel('Share of Clicks').setValue('share_of_clicks'))
+          .addOption(config.newOptionBuilder().setLabel('Share of Spend').setValue('share_of_spend'))
+          .addOption(config.newOptionBuilder().setLabel('Share of Impressions').setValue('share_of_impressions'))
+          .addOption(config.newOptionBuilder().setLabel('Average Position').setValue('average_position'))
+          .addOption(config.newOptionBuilder().setLabel('Average CPC').setValue('average_cpc'))
+          .addOption(config.newOptionBuilder().setLabel('Frequency Share').setValue('frequency_share'));
+        break;
+      case FILTERING_OPTIONS:
+        config
+          .newSelectSingle()
+          .setId('filteringOptions')
+          .setName('Filtering Options')
+          .setHelpText('When filtering by competitors or groups, choose whether relative or absolute filtering should be applied.')
+          .addOption(config.newOptionBuilder().setLabel('Relative').setValue('relative'))
+          .addOption(config.newOptionBuilder().setLabel('Absolute').setValue('absolute'));
+        break;
+      case TIME_PERIOD:
+        config
+          .newSelectSingle()
+          .setId('timePeriod')
+          .setName('Time Period')
+          .setHelpText('Choose time period if you want to enforce data granularity regardless of the chosen date range.')
+          .addOption(config.newOptionBuilder().setLabel('Daily').setValue('daily'))
+          .addOption(config.newOptionBuilder().setLabel('Weekly').setValue('weekly'))
+          .addOption(config.newOptionBuilder().setLabel('Monthly').setValue('monthly'))
           .setAllowOverride(true);
         break;
       default:
@@ -357,6 +436,77 @@ function getMarketTrendsFields(isSegmented) {
     .setType(types.NUMBER);
 
   fields.setDefaultMetric(value.getId());
+  fields.setDefaultDimension(date.getId());
+
+  return fields;
+}
+
+function getMarketTrendsV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('ad_type')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  var date = fields
+    .newDimension()
+    .setId('date')
+    .setName('Date')
+    .setType(types.YEAR_MONTH_DAY);
+
+  var shareOfClicks = fields
+    .newMetric()
+    .setId('share_of_clicks')
+    .setName('Share of Clicks')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('share_of_spend')
+    .setName('Share of Spend')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('share_of_impressions')
+    .setName('Share of Impressions')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('average_position')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('average_cpc')
+    .setName('Average CPC')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('frequency_share')
+    .setName('Frequency Share')
+    .setType(types.PERCENT);
+
+  fields.setDefaultMetric(shareOfClicks.getId());
   fields.setDefaultDimension(date.getId());
 
   return fields;
@@ -840,6 +990,9 @@ function getFields(request) {
     case TREND:
       fields = getMarketTrendsFields(false);
       break;
+    case TREND_V2:
+      fields = getMarketTrendsV2Fields();
+      break;
     case SEGMENTED_TREND:
       fields = getMarketTrendsFields(true);
       break;
@@ -914,9 +1067,14 @@ function validateConfig(configParams) {
   if (isSegmentedDataset(configParams.datasetType) && (!configParams.searchTermGroups || configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '').length === 0)) {
     cc.newUserError().setText('You have chosen a segmented endpoint. Please add comma-separated search term groups to segment by.').throwException();
   }
+  // V1 defaults
   configParams.device = configParams.device || DEFAULTS.device;
   configParams.adType = configParams.adType || DEFAULTS.adType;
   configParams.isWholeMarket = configParams.isWholeMarket || DEFAULTS.isWholeMarket;
+  // V2 defaults
+  configParams.deviceV2 = configParams.deviceV2 || DEFAULTS_V2.device;
+  configParams.adTypeV2 = configParams.adTypeV2 || DEFAULTS_V2.adType;
+  configParams.isWholeMarketV2 = configParams.isWholeMarketV2 || DEFAULTS_V2.isWholeMarket;
   return configParams;
 }
 
@@ -949,6 +1107,7 @@ function getData(request) {
 
   try {
     var configParams = validateConfig(request.configParams);
+    var isV2Api = isV2ApiDataset(configParams.datasetType);
     var accountId = configParams.accountId;
     var apiKey = configParams.apiKey;
     var startDate = request.dateRange.startDate;
@@ -956,24 +1115,49 @@ function getData(request) {
     var device = configParams.device;
     var adType = configParams.adType;
     var isWholeMarket = configParams.isWholeMarket;
+    var deviceV2 = configParams.deviceV2;
+    var adTypeV2 = configParams.adTypeV2;
+    var isWholeMarketV2 = configParams.isWholeMarketV2;
     var isSegmentedResponse = isSegmentedDataset(configParams.datasetType);
     var searchTermGroupSegments = isSegmentedResponse ? configParams.searchTermGroups.split(',').map(v => v.trim()).filter(v => v !== '') : [configParams.searchTermGroups];
+    var endpointWithFilters;
     var data = searchTermGroupSegments.flatMap(function (segment) {
-      var endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
-        .withAdditionalFilters('device', device)
-        .withAdditionalFilters('traffictype', adType)
-        .withAdditionalFilters('wholemarket', isWholeMarket)
-        .withAdditionalFilters('cg', configParams.competitorGroups)
-        .withAdditionalFilters('competitor', configParams.competitors)
-        .withAdditionalFilters('kg', segment)
-        .withAdditionalFilters('searchterm', configParams.searchTerms)
-        .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
-        .withAdditionalFilters('isTotal', configParams.isTotal)
-        .withAdditionalFilters('page', configParams.page)
-        .withAdditionalFilters('pagesize', configParams.pageSize);
-      apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters);
+      if (isV2Api) {
+        endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
+          .withAdditionalFilters('device', deviceV2)
+          .withAdditionalFilters('ad_type', adTypeV2)
+          .withAdditionalFilters('is_whole_market', isWholeMarketV2)
+          .withAdditionalFilters('competitor_group', configParams.competitorGroups)
+          .withAdditionalFilters('competitor', configParams.competitors)
+          .withAdditionalFilters('search_term_group', segment)
+          .withAdditionalFilters('search_term', configParams.searchTerms)
+          .withAdditionalFilters('segment_by', configParams.segmentBy)
+          .withAdditionalFilters('primary_dimension', configParams.primaryDimension)
+          .withAdditionalFilters('filtering_options', configParams.filteringOptions)
+          .withAdditionalFilters('time_period', configParams.timePeriod);
+          // .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
+          // .withAdditionalFilters('isTotal', configParams.isTotal)
+          // .withAdditionalFilters('page', configParams.page)
+          // .withAdditionalFilters('pagesize', configParams.pageSize);
+      } else {
+        endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
+          .withAdditionalFilters('device', device)
+          .withAdditionalFilters('traffictype', adType)
+          .withAdditionalFilters('wholemarket', isWholeMarket)
+          .withAdditionalFilters('cg', configParams.competitorGroups)
+          .withAdditionalFilters('competitor', configParams.competitors)
+          .withAdditionalFilters('kg', segment)
+          .withAdditionalFilters('searchterm', configParams.searchTerms)
+          .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
+          .withAdditionalFilters('isTotal', configParams.isTotal)
+          .withAdditionalFilters('page', configParams.page)
+          .withAdditionalFilters('pagesize', configParams.pageSize);
+      }
+      apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, isV2Api);
       console.log('Formatting data for requested fields.');
-      var dt = getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
+      var dt = isV2Api
+        ? getFormattedDataV2(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null)
+        : getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
       console.log('Data format complete. Ready to return.');
       return dt;
     });
@@ -997,7 +1181,7 @@ function getData(request) {
 /**
  * Fetch the data from the Adthena API. First check if it's available in the cache and then fall back to the API.
  */
-function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters) {
+function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, isV2Api) {
   var cache = new DataCache(
     CacheService.getUserCache(),
     accountId,
@@ -1009,24 +1193,17 @@ function fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters) {
   var apiResponse = null;
   apiResponse = fetchDataFromCache(cache);
   if (!apiResponse) {
-    apiResponse = JSON.parse(fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters));
+    apiResponse = JSON.parse(fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters, isV2Api));
     setInCache(apiResponse, cache);
   }
   return apiResponse;
 }
 
 /**
- * Gets response from the API using UrlFetchApp.
- *
- * @param {Object} request Data request parameters.
- * @returns {string} Response text for UrlFetchApp.
+ * Builds a URL for the API V1
  */
-function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters) {
-  if (endpointWithFilters.containsForbiddenFilters()) {
-    console.log('Forbidden filters detected: %s. Returning empty Json array. Full filter: %s.', endpointWithFilters.forbiddenFilters.join('; '), endpointWithFilters.filters);
-    return '[]';
-  }
-  var url = [
+function buildApiV1Url(accountId, startDate, endDate, endpointWithFilters) {
+  return [
     'https://api.adthena.com/wizard/',
     accountId,
     '/',
@@ -1037,7 +1214,41 @@ function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFil
     endDate,
     endpointWithFilters.filters ? '&' + endpointWithFilters.filters : '',
     '&platform=looker_studio'
-  ].join('');
+  ].join('')
+}
+
+/**
+ * Builds a URL for the API V2
+ */
+function buildApiV2Url(accountId, startDate, endDate, endpointWithFilters) {
+  return [
+    'https://api.adthena.com/v2/',
+    accountId,
+    '/',
+    endpointWithFilters.endpoint,
+    '?start_date=',
+    startDate,
+    '&end_date=',
+    endDate,
+    endpointWithFilters.filters ? '&' + endpointWithFilters.filters : '',
+    '&platform=looker_studio'
+  ].join('')
+}
+
+/**
+ * Gets response from the API using UrlFetchApp.
+ *
+ * @param {Object} request Data request parameters.
+ * @returns {string} Response text for UrlFetchApp.
+ */
+function fetchDataFromApi(accountId, apiKey, startDate, endDate, endpointWithFilters, isV2Api) {
+  if (endpointWithFilters.containsForbiddenFilters()) {
+    console.log('Forbidden filters detected: %s. Returning empty Json array. Full filter: %s.', endpointWithFilters.forbiddenFilters.join('; '), endpointWithFilters.filters);
+    return '[]';
+  }
+  var url = isV2Api
+    ? buildApiV2Url(accountId, startDate, endDate, endpointWithFilters)
+    : buildApiV1Url(accountId, startDate, endDate, endpointWithFilters);
   var options = {
     'method': 'GET',
     'headers': {
@@ -1054,7 +1265,7 @@ function fetchDataFromCache(cache) {
   try {
     var responseString = cache.get();
     response = JSON.parse(responseString);
-    console.log('Fetched succesfully from cache. Length', response.length);
+    console.log('Fetched successfully from cache. Length', response.length || response.data?.length);
   } catch (e) {
     console.log('Error when fetching from cache:', e);
   }
@@ -1200,6 +1411,36 @@ function getMappedData(outer, inner, requestedField, segment) {
   }
 }
 
+function getMappedDataV2(outer, inner, point, requestedField, segment) {
+  if (segment && segment.fieldName === requestedField) {
+    return segment.value;
+  }
+  switch (requestedField) {
+    case 'competitor':
+      return inner.competitor;
+    case 'device':
+      return outer.device;
+    case 'ad_type':
+      return outer.ad_type;
+    case 'date':
+      return transformDate(point.date);
+    case 'share_of_clicks':
+      return point.share_of_clicks;
+    case 'share_of_spend':
+      return point.share_of_spend;
+    case 'share_of_impressions':
+      return point.share_of_impressions;
+    case 'average_position':
+      return point.average_position;
+    case 'average_cpc':
+      return point.average_cpc;
+    case 'frequency_share':
+      return point.frequency_share;
+    default:
+      return '';
+  }
+}
+
 /**
  * Formats the parsed response from external data source into correct tabular
  * format and returns only the requestedFields
@@ -1236,6 +1477,43 @@ function getFormattedData(response, requestedFields, segment) {
         });
     } else {
       return [{ values: fields.map(requestedField => getMappedData(outer, outer, requestedField, segment)) }];
+    }
+  });
+}
+
+/**
+ * Formats the parsed response from external data source from the V2 API
+ * into correct tabular format and returns only the requestedFields
+ *
+ * @param {Object} responseString The response string from external data source.
+ * @param {Array} requestedFields The fields requested in the getData request.
+ * @param {Object} segment An optional segment option to put to the final formatted data.
+ * @returns {Array} Array containing rows of data in key-value pairs for each field.
+ */
+function getFormattedDataV2(response, requestedFields, segment) {
+  // get the field IDs and use them in getMappedData, because getId() is very expensive.
+  var fields = requestedFields.asArray().map(f => f.getId());
+  var data = response.data;
+  // keep everything except the data as metadata.
+  var metaData = (({ data, ...object }) => object)(response);
+
+  return data.flatMap(function(item) {
+    var outer = {...item, ...metaData};
+    // trends response
+    if (outer.competitors) {
+      return outer.competitors.flatMap(
+        function(competitor) {
+          return competitor.time_series.map(
+            function(point) {
+              row = fields.map(requestedField => getMappedDataV2(outer, competitor, point, requestedField, segment));
+              return { values: row };
+            }
+          )
+        }
+      );
+
+    } else {
+      return [{ values: [] }];
     }
   });
 }
