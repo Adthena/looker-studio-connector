@@ -78,6 +78,7 @@ const COMPETITORS = 'competitors';
 const INFRINGEMENT_RULE_IDS = 'infringementRuleIds';
 // end: filter ids
 
+// start: API V1
 const TREND = 'trend';
 const SEGMENTED_TREND = 'segmented_trend';
 const SHARE = 'share';
@@ -257,14 +258,62 @@ const BRAND_ACTIVATOR_OPTIONS = new DatasetOptions(
     ]
   )
 );
+// end: API V1
+
+// start: API V2
+const DEFAULTS_V2 = {
+  device: 'desktop',
+  adType: 'textad',
+  isWholeMarket: 'true'
+};
+// start: filter ids
+// basic
+const DEVICE_V2 = 'deviceV2';
+const AD_TYPE_V2 = 'adTypeV2';
+const IS_WHOLE_MARKET_V2 = 'isWholeMarketV2';
+const SEGMENT_BY = 'segmentBy'; // device or ad_type. Supports multiple.
+// advanced
+const PRIMARY_DIMENSION = 'primaryDimension'; // for trends
+const FILTERING_OPTIONS = 'filteringOptions'; // relative (default), absolute
+const TIME_PERIOD = 'timePeriod'; // daily, weekly, monthly
+
+// end: filter ids
+
+const TREND_V2 = 'trend_v2';
+const TREND_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Market Trends', 'trends-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(AD_TYPE_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(SEGMENT_BY)
+    ],
+    [
+      new FilterOption(PRIMARY_DIMENSION),
+      new FilterOption(FILTERING_OPTIONS),
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  )
+);
+// end: API V2
+
 const VIRTUAL_ENDPOINT_MAPPINGS = {
-  // trends
+  // trends (deprecated)
   'share-of-clicks-trend': new EndpointWithFilters('share-of-clicks-trend/all'),
   'share-of-spend-trend': new EndpointWithFilters('share-of-spend-trend/all'),
   'impression-share-trend': new EndpointWithFilters('impression-share-trend/all'),
   'frequency-trend': new EndpointWithFilters('frequency-trend/all'),
   'average-position-trend': new EndpointWithFilters('average-position-trend/all'),
   'average-cpc-trend': new EndpointWithFilters('average-cpc-trend/all'),
+  // trends-v2
+  'trends-v2': new EndpointWithFilters('market-trends'),
   // market share
   'market-share': new EndpointWithFilters('market-share/all'),
   'market-share-groups-and-locations': new EndpointWithFilters('market-share/groups-and-locations'),
@@ -299,6 +348,8 @@ function getOptionsForDatasetType(datasetType) {
       return ALL_SHARE_OPTIONS;
     case TREND:
       return TREND_OPTIONS;
+    case TREND_V2:
+      return TREND_V2_OPTIONS;
     case SEGMENTED_TREND:
       return TREND_OPTIONS;
     case ST_DETAIL:
@@ -327,5 +378,9 @@ function getEndpointWithFilters(virtualEndpoint) {
 }
 
 function isSegmentedDataset(datasetType) {
-  return datasetType === SEGMENTED_TREND || datasetType === SEGMENTED_SHARE || datasetType === SEGMENTED_ST_DETAIL;
+  return [SEGMENTED_TREND, SEGMENTED_SHARE, SEGMENTED_ST_DETAIL].includes(datasetType);
+}
+
+function isV2ApiDataset(datasetType) {
+  return [TREND_V2].includes(datasetType);
 }
