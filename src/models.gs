@@ -302,6 +302,7 @@ const TREND_V2_OPTIONS = new DatasetOptions(
     ]
   )
 );
+const SEGMENTED_TREND_V2 = 'segmented_trend_v2';
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -352,6 +353,8 @@ function getOptionsForDatasetType(datasetType) {
       return TREND_V2_OPTIONS;
     case SEGMENTED_TREND:
       return TREND_OPTIONS;
+    case SEGMENTED_TREND_V2:
+      return TREND_V2_OPTIONS;
     case ST_DETAIL:
       return SEARCH_TERM_DETAIL_OPTIONS;
     case SEGMENTED_ST_DETAIL:
@@ -378,9 +381,9 @@ function getEndpointWithFilters(virtualEndpoint) {
 }
 
 function isSegmentedDataset(datasetType) {
-  return [SEGMENTED_TREND, SEGMENTED_SHARE, SEGMENTED_ST_DETAIL].includes(datasetType);
+  return [SEGMENTED_TREND, SEGMENTED_TREND_V2, SEGMENTED_SHARE, SEGMENTED_ST_DETAIL].includes(datasetType);
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2].includes(datasetType);
 }

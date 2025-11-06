@@ -38,8 +38,9 @@ function getConfig(request) {
     .setHelpText('Choose your dataset first.')
     .setIsDynamic(true)
     .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND_V2))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
-    .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations').setValue(ALL_SHARE))
@@ -54,7 +55,7 @@ function getConfig(request) {
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -441,10 +442,18 @@ function getMarketTrendsFields(isSegmented) {
   return fields;
 }
 
-function getMarketTrendsV2Fields() {
+function getMarketTrendsV2Fields(isSegmented) {
   var fields = cc.getFields();
   var types = cc.FieldType;
   var aggregations = cc.AggregationType;
+
+  if (isSegmented) {
+    fields
+      .newDimension()
+      .setId('search_term_group')
+      .setName('Search Term Group')
+      .setType(types.TEXT);
+  }
 
   fields
     .newDimension()
@@ -991,10 +1000,13 @@ function getFields(request) {
       fields = getMarketTrendsFields(false);
       break;
     case TREND_V2:
-      fields = getMarketTrendsV2Fields();
+      fields = getMarketTrendsV2Fields(false);
       break;
     case SEGMENTED_TREND:
       fields = getMarketTrendsFields(true);
+      break;
+    case SEGMENTED_TREND_V2:
+      fields = getMarketTrendsV2Fields(true);
       break;
     case SHARE:
       fields = getMarketShareFields(false);
@@ -1156,7 +1168,7 @@ function getData(request) {
       apiResponse = fetchData(accountId, apiKey, startDate, endDate, endpointWithFilters, isV2Api);
       console.log('Formatting data for requested fields.');
       var dt = isV2Api
-        ? getFormattedDataV2(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null)
+        ? getFormattedDataV2(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('search_term_group', segment) : null)
         : getFormattedData(apiResponse, requestedFields, isSegmentedResponse ? SegmentedOption('searchTermGroup', segment) : null);
       console.log('Data format complete. Ready to return.');
       return dt;
