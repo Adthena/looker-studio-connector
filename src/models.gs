@@ -272,6 +272,8 @@ const DEVICE_V2 = 'deviceV2';
 const AD_TYPE_V2 = 'adTypeV2';
 const IS_WHOLE_MARKET_V2 = 'isWholeMarketV2';
 const SEGMENT_BY = 'segmentBy'; // device or ad_type. Supports multiple.
+const PAGE_V2 = 'pageV2';
+const PAGE_SIZE_V2 = 'pageSizeV2';
 // advanced
 const PRIMARY_DIMENSION = 'primaryDimension'; // for trends
 const FILTERING_OPTIONS = 'filteringOptions'; // relative (default), absolute
@@ -303,6 +305,32 @@ const TREND_V2_OPTIONS = new DatasetOptions(
   )
 );
 const SEGMENTED_TREND_V2 = 'segmented_trend_v2';
+
+const SHARE_V2 = 'share_v2';
+const SHARE_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Market Share', 'market-share-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(AD_TYPE_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(SEGMENT_BY),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(FILTERING_OPTIONS),
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  )
+);
+const SEGMENTED_SHARE_V2 = 'segmented_share_v2';
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -315,9 +343,11 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'average-cpc-trend': new EndpointWithFilters('average-cpc-trend/all'),
   // trends-v2
   'trends-v2': new EndpointWithFilters('market-trends'),
-  // market share
+  // market share (deprecated)
   'market-share': new EndpointWithFilters('market-share/all'),
   'market-share-groups-and-locations': new EndpointWithFilters('market-share/groups-and-locations'),
+  // market share v2
+  'market-share-v2': new EndpointWithFilters('market-share'),
   // search term detail
   'search-term-detail': new EndpointWithFilters('search-term-detail/all'),
   // search term opportunities
@@ -345,6 +375,10 @@ function getOptionsForDatasetType(datasetType) {
       return SHARE_OPTIONS;
     case SEGMENTED_SHARE:
       return SHARE_OPTIONS;
+    case SHARE_V2:
+      return SHARE_V2_OPTIONS;
+    case SEGMENTED_SHARE_V2:
+      return SHARE_V2_OPTIONS;
     case ALL_SHARE:
       return ALL_SHARE_OPTIONS;
     case TREND:
@@ -381,9 +415,9 @@ function getEndpointWithFilters(virtualEndpoint) {
 }
 
 function isSegmentedDataset(datasetType) {
-  return [SEGMENTED_TREND, SEGMENTED_TREND_V2, SEGMENTED_SHARE, SEGMENTED_ST_DETAIL].includes(datasetType);
+  return [SEGMENTED_TREND, SEGMENTED_TREND_V2, SEGMENTED_SHARE, SEGMENTED_SHARE_V2, SEGMENTED_ST_DETAIL].includes(datasetType);
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2].includes(datasetType);
 }

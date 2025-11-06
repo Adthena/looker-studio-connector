@@ -39,10 +39,12 @@ function getConfig(request) {
     .setIsDynamic(true)
     .addOption(config.newOptionBuilder().setLabel('Market Trends').setValue(TREND_V2))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND_V2))
+    .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE_V2))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
-    .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE))
-    .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE))
+    .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Market Share (Deprecated)').setValue(SEGMENTED_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations').setValue(ALL_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL))
@@ -55,7 +57,7 @@ function getConfig(request) {
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND, SEGMENTED_TREND].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -182,6 +184,22 @@ function addConfigOptions(config, filterOptions) {
           .setId('pageSize')
           .setName('Page Size')
           .setHelpText('The page size to request. Default: 50')
+          .setAllowOverride(true);
+        break;
+      case PAGE_V2:
+        config
+          .newTextInput()
+          .setId('pageV2')
+          .setName('Page')
+          .setHelpText('Page number to request. Default: 1')
+          .setAllowOverride(true);
+        break;
+      case PAGE_SIZE_V2:
+        config
+          .newTextInput()
+          .setId('pageSizeV2')
+          .setName('Page Size')
+          .setHelpText('The page size to request. Set to 0 to disable pagination and return all data (easier to work with, but could cause issues with large datasets). Default: 50')
           .setAllowOverride(true);
         break;
       case SEARCH_TERM_GROUPS:
@@ -400,6 +418,88 @@ function getAllMarketShareFields() {
     .newMetric()
     .setId('averagePosition')
     .setName('Average Position')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
+function getMarketShareV2Fields(isSegmented) {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  if (isSegmented) {
+    fields
+      .newDimension()
+      .setId('search_term_group')
+      .setName('Search Term Group')
+      .setType(types.TEXT);
+  }
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('ad_type')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('estimated_impressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('share_of_clicks')
+    .setName('Share of Clicks')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('share_of_spend')
+    .setName('Share of Spend')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('share_of_impressions')
+    .setName('Share of Impressions')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('average_position')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('relevant_search_terms')
+    .setName('Relevant Search Terms')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
     .setType(types.NUMBER);
 
   return fields;
@@ -1014,6 +1114,12 @@ function getFields(request) {
     case SEGMENTED_SHARE:
       fields = getMarketShareFields(true);
       break;
+    case SHARE_V2:
+      fields = getMarketShareV2Fields(false);
+      break;
+    case SEGMENTED_SHARE_V2:
+      fields = getMarketShareV2Fields(true);
+      break;
     case ALL_SHARE:
       fields = getAllMarketShareFields();
       break;
@@ -1146,11 +1252,9 @@ function getData(request) {
           .withAdditionalFilters('segment_by', configParams.segmentBy)
           .withAdditionalFilters('primary_dimension', configParams.primaryDimension)
           .withAdditionalFilters('filtering_options', configParams.filteringOptions)
-          .withAdditionalFilters('time_period', configParams.timePeriod);
-          // .withAdditionalFilters('infringementrule', configParams.infringementRuleIds)
-          // .withAdditionalFilters('isTotal', configParams.isTotal)
-          // .withAdditionalFilters('page', configParams.page)
-          // .withAdditionalFilters('pagesize', configParams.pageSize);
+          .withAdditionalFilters('time_period', configParams.timePeriod)
+          .withAdditionalFilters('page', configParams.pageV2)
+          .withAdditionalFilters('page_size', configParams.pageSizeV2);
       } else {
         endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
           .withAdditionalFilters('device', device)
@@ -1429,7 +1533,7 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
   }
   switch (requestedField) {
     case 'competitor':
-      return inner.competitor;
+      return inner.competitor || outer.competitor;
     case 'device':
       return outer.device;
     case 'ad_type':
@@ -1437,17 +1541,25 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
     case 'date':
       return transformDate(point.date);
     case 'share_of_clicks':
-      return point.share_of_clicks;
+      return point.share_of_clicks || outer.share_of_clicks;
     case 'share_of_spend':
-      return point.share_of_spend;
+      return point.share_of_spend || outer.share_of_spend;
     case 'share_of_impressions':
-      return point.share_of_impressions;
+      return point.share_of_impressions || outer.share_of_impressions;
     case 'average_position':
-      return point.average_position;
+      return point.average_position || outer.average_position;
     case 'average_cpc':
       return point.average_cpc;
     case 'frequency_share':
       return point.frequency_share;
+    case 'estimated_impressions':
+      return outer.estimated_impressions;
+    case 'relevant_search_terms':
+      return outer.relevant_search_terms;
+    case 'total_pages':
+      return outer.pagination ? outer.pagination.total_pages : null;
+    case 'total_items':
+      return outer.pagination ? outer.pagination.total_items : null;
     default:
       return '';
   }
@@ -1511,7 +1623,7 @@ function getFormattedDataV2(response, requestedFields, segment) {
 
   return data.flatMap(function(item) {
     var outer = {...item, ...metaData};
-    // trends response
+    // trends response - has nested competitors and time_series
     if (outer.competitors) {
       return outer.competitors.flatMap(
         function(competitor) {
@@ -1523,7 +1635,10 @@ function getFormattedDataV2(response, requestedFields, segment) {
           )
         }
       );
-
+    // market share response - flat structure with direct fields
+    } else if (outer.competitor !== undefined) {
+      row = fields.map(requestedField => getMappedDataV2(outer, outer, {}, requestedField, segment));
+      return [{ values: row }];
     } else {
       return [{ values: [] }];
     }
