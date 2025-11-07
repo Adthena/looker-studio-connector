@@ -1254,7 +1254,7 @@ function getData(request) {
           .withAdditionalFilters('filtering_options', configParams.filteringOptions)
           .withAdditionalFilters('time_period', configParams.timePeriod)
           .withAdditionalFilters('page', configParams.pageV2)
-          .withAdditionalFilters('page_size', configParams.pageSizeV2);
+          .withAdditionalFilters('page_size', configParams.pageSizeV2)
           .withAdditionalFilters('max_number_of_domains', configParams.maxDomains);
       } else {
         endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
