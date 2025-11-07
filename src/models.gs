@@ -274,6 +274,7 @@ const IS_WHOLE_MARKET_V2 = 'isWholeMarketV2';
 const SEGMENT_BY = 'segmentBy'; // device or ad_type. Supports multiple.
 const PAGE_V2 = 'pageV2';
 const PAGE_SIZE_V2 = 'pageSizeV2';
+const TREND_MAX_DOMAINS = 'maxDomains';
 // advanced
 const PRIMARY_DIMENSION = 'primaryDimension'; // for trends
 const FILTERING_OPTIONS = 'filteringOptions'; // relative (default), absolute
@@ -294,6 +295,7 @@ const TREND_V2_OPTIONS = new DatasetOptions(
       new FilterOption(SEGMENT_BY)
     ],
     [
+      new FilterOption(TREND_MAX_DOMAINS),
       new FilterOption(PRIMARY_DIMENSION),
       new FilterOption(FILTERING_OPTIONS),
       new FilterOption(TIME_PERIOD),
