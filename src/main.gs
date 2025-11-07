@@ -202,6 +202,14 @@ function addConfigOptions(config, filterOptions) {
           .setHelpText('The page size to request. Set to 0 to disable pagination and return all data (easier to work with, but could cause issues with large datasets). Default: 50')
           .setAllowOverride(true);
         break;
+      case TREND_MAX_DOMAINS:
+        config
+          .newTextInput()
+          .setId('maxDomains')
+          .setName('Max Domains')
+          .setHelpText('The maximum number of domains to return. Default: 10')
+          .setAllowOverride(true);
+        break;
       case SEARCH_TERM_GROUPS:
         config
           .newTextInput()
