@@ -311,7 +311,8 @@ const SEGMENTED_TREND_V2 = 'segmented_trend_v2';
 const SHARE_V2 = 'share_v2';
 const SHARE_V2_OPTIONS = new DatasetOptions(
   [
-    new MenuOption('Market Share', 'market-share-v2')
+    new MenuOption('Market Share', 'market-share-v2'),
+    new MenuOption('Market Share for Groups and Locations', 'market-share-groups-and-locations-v2')
   ],
   new FilterOptionsConfig(
     [
@@ -333,6 +334,29 @@ const SHARE_V2_OPTIONS = new DatasetOptions(
   )
 );
 const SEGMENTED_SHARE_V2 = 'segmented_share_v2';
+const SEGMENTED_SHARE_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Market Share', 'market-share-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(AD_TYPE_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(SEGMENT_BY),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(FILTERING_OPTIONS),
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  )
+);
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -350,6 +374,7 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'market-share-groups-and-locations': new EndpointWithFilters('market-share/groups-and-locations'),
   // market share v2
   'market-share-v2': new EndpointWithFilters('market-share'),
+  'market-share-groups-and-locations-v2': new EndpointWithFilters('market-share/groups-and-locations'),
   // search term detail
   'search-term-detail': new EndpointWithFilters('search-term-detail/all'),
   // search term opportunities
@@ -380,7 +405,7 @@ function getOptionsForDatasetType(datasetType) {
     case SHARE_V2:
       return SHARE_V2_OPTIONS;
     case SEGMENTED_SHARE_V2:
-      return SHARE_V2_OPTIONS;
+      return SEGMENTED_SHARE_V2_OPTIONS;
     case ALL_SHARE:
       return ALL_SHARE_OPTIONS;
     case TREND:

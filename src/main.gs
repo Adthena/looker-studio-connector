@@ -45,7 +45,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share (Deprecated)').setValue(SEGMENTED_SHARE))
-    .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations').setValue(ALL_SHARE))
+    .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations (Deprecated)').setValue(ALL_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
@@ -443,6 +443,92 @@ function getMarketShareV2Fields(isSegmented) {
       .setName('Search Term Group')
       .setType(types.TEXT);
   }
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('ad_type')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('estimated_impressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('share_of_clicks')
+    .setName('Share of Clicks')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('share_of_spend')
+    .setName('Share of Spend')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('share_of_impressions')
+    .setName('Share of Impressions')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('average_position')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('relevant_search_terms')
+    .setName('Relevant Search Terms')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
+function getAllMarketShareV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('location')
+    .setName('Location')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('search_term_group')
+    .setName('Search Term Group')
+    .setType(types.TEXT);
 
   fields
     .newDimension()
@@ -1123,7 +1209,21 @@ function getFields(request) {
       fields = getMarketShareFields(true);
       break;
     case SHARE_V2:
-      fields = getMarketShareV2Fields(false);
+      switch(virtualEndpoint) {
+        case 'market-share-v2':
+          fields = getMarketShareV2Fields(false);
+          break;
+        case 'market-share-groups-and-locations-v2':
+          fields = getAllMarketShareV2Fields();
+          break;
+        default:
+          cc.newUserError()
+            .setDebugText('Unknown virtual endpoint for market share v2: ' + virtualEndpoint)
+            .setText(
+              'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
+            )
+            .throwException();
+      }
       break;
     case SEGMENTED_SHARE_V2:
       fields = getMarketShareV2Fields(true);
@@ -1541,6 +1641,10 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
     return segment.value;
   }
   switch (requestedField) {
+    case 'location':
+      return outer.location_name;
+    case 'search_term_group':
+      return outer.search_term_group_name;
     case 'competitor':
       return inner.competitor || outer.competitor;
     case 'device':
