@@ -5,8 +5,16 @@ function MenuOption(label, virtualEndpoint) {
   return this;
 };
 
-function FilterOption(id) {
+function SelectOption(label, value) {
+  this.label = label;
+  this.value = value;
+
+  return this;
+};
+
+function FilterOption(id, options) {
   this.id = id;
+  this.options = options; // optional array of SelectOption objects for dropdown filters
 
   return this;
 };
@@ -279,6 +287,8 @@ const TREND_MAX_DOMAINS = 'maxDomains';
 const PRIMARY_DIMENSION = 'primaryDimension'; // for trends
 const FILTERING_OPTIONS = 'filteringOptions'; // relative (default), absolute
 const TIME_PERIOD = 'timePeriod'; // daily, weekly, monthly
+const ORDER_BY = 'orderBy'; // for search term detail
+const ORDER_DIRECTION = 'orderDirection'; // asc, desc
 
 // end: filter ids
 
@@ -357,6 +367,42 @@ const SEGMENTED_SHARE_V2_OPTIONS = new DatasetOptions(
     ]
   )
 );
+
+const ST_DETAIL_V2 = 'search_term_detail_v2';
+const ST_DETAIL_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Search Term Detail', 'search-term-detail-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(AD_TYPE_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(SEGMENT_BY),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(FILTERING_OPTIONS),
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(ORDER_BY, [
+        new SelectOption('Search Term', 'search_term'),
+        new SelectOption('Competitors', 'competitors'),
+        new SelectOption('Estimated Impressions', 'estimated_impressions'),
+        new SelectOption('Estimated Clicks', 'estimated_clicks'),
+        new SelectOption('Average Position', 'average_position'),
+        new SelectOption('Min CPC', 'min_cpc'),
+        new SelectOption('Max CPC', 'max_cpc')
+      ]),
+      new FilterOption(ORDER_DIRECTION),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  )
+);
+const SEGMENTED_ST_DETAIL_V2 = 'segmented_search_term_detail_v2';
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -377,6 +423,8 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'market-share-groups-and-locations-v2': new EndpointWithFilters('market-share/groups-and-locations'),
   // search term detail
   'search-term-detail': new EndpointWithFilters('search-term-detail/all'),
+  // search term detail v2
+  'search-term-detail-v2': new EndpointWithFilters('search-term-detail'),
   // search term opportunities
   'search-term-opportunities-1': new EndpointWithFilters('search-term-opportunities/all'),
   'search-term-opportunities-2': new EndpointWithFilters('search-term-opportunities/all', 'segment=missing_brand_terms', ['device=total']),
@@ -420,6 +468,10 @@ function getOptionsForDatasetType(datasetType) {
       return SEARCH_TERM_DETAIL_OPTIONS;
     case SEGMENTED_ST_DETAIL:
       return SEARCH_TERM_DETAIL_OPTIONS;
+    case ST_DETAIL_V2:
+      return ST_DETAIL_V2_OPTIONS;
+    case SEGMENTED_ST_DETAIL_V2:
+      return ST_DETAIL_V2_OPTIONS;
     case TOP_ADS:
       return TOP_ADS_OPTIONS;
     case TOP_PLAS:
@@ -442,9 +494,9 @@ function getEndpointWithFilters(virtualEndpoint) {
 }
 
 function isSegmentedDataset(datasetType) {
-  return [SEGMENTED_TREND, SEGMENTED_TREND_V2, SEGMENTED_SHARE, SEGMENTED_SHARE_V2, SEGMENTED_ST_DETAIL].includes(datasetType);
+  return [SEGMENTED_TREND, SEGMENTED_TREND_V2, SEGMENTED_SHARE, SEGMENTED_SHARE_V2, SEGMENTED_ST_DETAIL, SEGMENTED_ST_DETAIL_V2].includes(datasetType);
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2].includes(datasetType);
 }

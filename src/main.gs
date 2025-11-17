@@ -41,13 +41,15 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends').setValue(SEGMENTED_TREND_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Share').setValue(SHARE_V2))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE_V2))
+    .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL_V2))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share (Deprecated)').setValue(SEGMENTED_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations (Deprecated)').setValue(ALL_SHARE))
-    .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL))
-    .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL))
+    .addOption(config.newOptionBuilder().setLabel('Search Term Detail (Deprecated)').setValue(ST_DETAIL))
+    .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail (Deprecated)').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
@@ -291,6 +293,37 @@ function addConfigOptions(config, filterOptions) {
           .addOption(config.newOptionBuilder().setLabel('Daily').setValue('daily'))
           .addOption(config.newOptionBuilder().setLabel('Weekly').setValue('weekly'))
           .addOption(config.newOptionBuilder().setLabel('Monthly').setValue('monthly'))
+          .setAllowOverride(true);
+        break;
+      case ORDER_BY:
+        if (!filterOption.options || filterOption.options.length === 0) {
+          cc.newUserError()
+            .setDebugText('ORDER_BY filter requires options to be specified')
+            .setText(
+              'The connector has encountered a configuration error. Please contact the developer.'
+            )
+            .throwException();
+        }
+
+        var orderByConfig = config
+          .newSelectSingle()
+          .setId('orderBy')
+          .setName('Order By')
+          .setHelpText('Field to order results by.')
+          .setAllowOverride(true);
+
+        filterOption.options.forEach(option => {
+          orderByConfig.addOption(config.newOptionBuilder().setLabel(option.label).setValue(option.value));
+        });
+        break;
+      case ORDER_DIRECTION:
+        config
+          .newSelectSingle()
+          .setId('orderDirection')
+          .setName('Order Direction')
+          .setHelpText('Sort direction for search term detail results.')
+          .addOption(config.newOptionBuilder().setLabel('Ascending').setValue('asc'))
+          .addOption(config.newOptionBuilder().setLabel('Descending').setValue('desc'))
           .setAllowOverride(true);
         break;
       default:
@@ -779,6 +812,106 @@ function getSearchTermDetailAndOpportunitiesFields(isSegmented) {
   return fields;
 }
 
+function getSearchTermDetailV2Fields(isSegmented) {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  if (isSegmented) {
+    fields
+      .newDimension()
+      .setId('search_term_group')
+      .setName('Search Term Group')
+      .setType(types.TEXT);
+  }
+
+  fields
+    .newDimension()
+    .setId('search_term')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('ad_type')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('top_competitor')
+    .setName('Top Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('is_priority')
+    .setName('Is Priority')
+    .setType(types.BOOLEAN);
+
+  fields
+    .newDimension()
+    .setId('is_ignored')
+    .setName('Is Ignored')
+    .setType(types.BOOLEAN);
+
+  fields
+    .newMetric()
+    .setId('competitors')
+    .setName('Competitors')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('estimated_impressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('estimated_clicks')
+    .setName('Estimated Clicks')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('average_position')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('min_cpc')
+    .setName('Min CPC')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('max_cpc')
+    .setName('Max CPC')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getTopAdsFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
@@ -1237,6 +1370,12 @@ function getFields(request) {
     case SEGMENTED_ST_DETAIL:
       fields = getSearchTermDetailAndOpportunitiesFields(true);
       break;
+    case ST_DETAIL_V2:
+      fields = getSearchTermDetailV2Fields(false);
+      break;
+    case SEGMENTED_ST_DETAIL_V2:
+      fields = getSearchTermDetailV2Fields(true);
+      break;
     case ST_OPPORTUNITIES:
       fields = getSearchTermDetailAndOpportunitiesFields(false);
       break;
@@ -1361,6 +1500,8 @@ function getData(request) {
           .withAdditionalFilters('primary_dimension', configParams.primaryDimension)
           .withAdditionalFilters('filtering_options', configParams.filteringOptions)
           .withAdditionalFilters('time_period', configParams.timePeriod)
+          .withAdditionalFilters('order_by', configParams.orderBy)
+          .withAdditionalFilters('order_direction', configParams.orderDirection)
           .withAdditionalFilters('page', configParams.pageV2)
           .withAdditionalFilters('page_size', configParams.pageSizeV2)
           .withAdditionalFilters('max_number_of_domains', configParams.maxDomains);
@@ -1673,6 +1814,22 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.pagination ? outer.pagination.total_pages : null;
     case 'total_items':
       return outer.pagination ? outer.pagination.total_items : null;
+    case 'search_term':
+      return outer.search_term;
+    case 'top_competitor':
+      return outer.top_competitor;
+    case 'is_priority':
+      return outer.is_priority;
+    case 'is_ignored':
+      return outer.is_ignored;
+    case 'competitors':
+      return outer.competitors;
+    case 'estimated_clicks':
+      return outer.estimated_clicks;
+    case 'min_cpc':
+      return outer.min_cpc;
+    case 'max_cpc':
+      return outer.max_cpc;
     default:
       return '';
   }
@@ -1737,7 +1894,7 @@ function getFormattedDataV2(response, requestedFields, segment) {
   return data.flatMap(function(item) {
     var outer = {...item, ...metaData};
     // trends response - has nested competitors and time_series
-    if (outer.competitors) {
+    if (outer.competitors && Array.isArray(outer.competitors)) {
       return outer.competitors.flatMap(
         function(competitor) {
           return competitor.time_series.map(
@@ -1748,8 +1905,8 @@ function getFormattedDataV2(response, requestedFields, segment) {
           )
         }
       );
-    // market share response - flat structure with direct fields
-    } else if (outer.competitor !== undefined) {
+    // market share and search term detail response - flat structure with direct fields
+    } else if (outer.competitor !== undefined || outer.search_term !== undefined) {
       row = fields.map(requestedField => getMappedDataV2(outer, outer, {}, requestedField, segment));
       return [{ values: row }];
     } else {
