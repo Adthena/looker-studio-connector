@@ -403,6 +403,40 @@ const ST_DETAIL_V2_OPTIONS = new DatasetOptions(
   )
 );
 const SEGMENTED_ST_DETAIL_V2 = 'segmented_search_term_detail_v2';
+
+const ST_OPPORTUNITIES_V2 = 'search_term_opportunities_v2';
+const ST_OPPORTUNITIES_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('All Opportunities', 'search-term-opportunities-v2-1'),
+    new MenuOption('Missing Brand Terms', 'search-term-opportunities-v2-2'),
+    new MenuOption('New Terms', 'search-term-opportunities-v2-3'),
+    new MenuOption('Missing Organic Terms', 'search-term-opportunities-v2-4'),
+    new MenuOption('Low Cost Terms', 'search-term-opportunities-v2-5'),
+    new MenuOption('Not In Google Ads', 'search-term-opportunities-v2-6'),
+    new MenuOption('Underperforming Google Ads', 'search-term-opportunities-v2-7')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(FILTERING_OPTIONS),
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(ORDER_BY, [
+        new SelectOption('Search Term', 'search_term'),
+        new SelectOption('Estimated Clicks', 'estimated_clicks')
+      ]),
+      new FilterOption(ORDER_DIRECTION),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  )
+);
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -433,6 +467,14 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'search-term-opportunities-5': new EndpointWithFilters('search-term-opportunities/all', 'segment=low_cost_terms', ['device=total']),
   'search-term-opportunities-6': new EndpointWithFilters('search-term-opportunities/all', 'segment=not_in_adwords_terms', ['device=total']),
   'search-term-opportunities-7': new EndpointWithFilters('search-term-opportunities/all', 'segment=underperforming_adwords_terms', ['device=total']),
+  // search term opportunities v2
+  'search-term-opportunities-v2-1': new EndpointWithFilters('search-term-opportunities'),
+  'search-term-opportunities-v2-2': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=missing_brand_terms'),
+  'search-term-opportunities-v2-3': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=new_terms'),
+  'search-term-opportunities-v2-4': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=missing_organic_terms'),
+  'search-term-opportunities-v2-5': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=low_cost_terms'),
+  'search-term-opportunities-v2-6': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=not_in_adwords_terms'),
+  'search-term-opportunities-v2-7': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=underperforming_adwords_terms'),
   // top ads
   'top-adverts': new EndpointWithFilters('top-adverts/all'),
   // top pla
@@ -478,6 +520,8 @@ function getOptionsForDatasetType(datasetType) {
       return TOP_PLAS_OPTIONS;
     case ST_OPPORTUNITIES:
       return SEARCH_TERM_OPPORTUNITIES_OPTIONS;
+    case ST_OPPORTUNITIES_V2:
+      return ST_OPPORTUNITIES_V2_OPTIONS;
     case INFRINGEMENTS:
       return INFRINGEMENTS_OPTIONS;
     case BRAND_ACTIVATOR:
@@ -498,5 +542,5 @@ function isSegmentedDataset(datasetType) {
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2].includes(datasetType);
 }

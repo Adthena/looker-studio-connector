@@ -43,6 +43,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Share').setValue(SEGMENTED_SHARE_V2))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL_V2))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL_V2))
+    .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
@@ -50,7 +51,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Market Share for Groups and Locations (Deprecated)').setValue(ALL_SHARE))
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail (Deprecated)').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail (Deprecated)').setValue(SEGMENTED_ST_DETAIL))
-    .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES))
+    .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities (Deprecated)').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS))
@@ -59,7 +60,7 @@ function getConfig(request) {
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -912,6 +913,98 @@ function getSearchTermDetailV2Fields(isSegmented) {
   return fields;
 }
 
+function getSearchTermOpportunitiesV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('search_term')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('top_competitor')
+    .setName('Top Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('is_priority')
+    .setName('Is Priority')
+    .setType(types.BOOLEAN);
+
+  fields
+    .newDimension()
+    .setId('is_ignored')
+    .setName('Is Ignored')
+    .setType(types.BOOLEAN);
+
+  fields
+    .newDimension()
+    .setId('is_rejected')
+    .setName('Is Rejected')
+    .setType(types.BOOLEAN);
+
+  fields
+    .newMetric()
+    .setId('competitors')
+    .setName('Competitors')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('estimated_clicks')
+    .setName('Estimated Clicks')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('average_position')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('min_cpc')
+    .setName('Min CPC')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('max_cpc')
+    .setName('Max CPC')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_clicks')
+    .setName('Total Clicks')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getTopAdsFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
@@ -1379,6 +1472,9 @@ function getFields(request) {
     case ST_OPPORTUNITIES:
       fields = getSearchTermDetailAndOpportunitiesFields(false);
       break;
+    case ST_OPPORTUNITIES_V2:
+      fields = getSearchTermOpportunitiesV2Fields();
+      break;
     case TOP_ADS:
       fields = getTopAdsFields();
       break;
@@ -1822,6 +1918,8 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.is_priority;
     case 'is_ignored':
       return outer.is_ignored;
+    case 'is_rejected':
+      return outer.is_rejected;
     case 'competitors':
       return outer.competitors;
     case 'estimated_clicks':
@@ -1830,6 +1928,8 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.min_cpc;
     case 'max_cpc':
       return outer.max_cpc;
+    case 'total_clicks':
+      return outer.total_clicks;
     default:
       return '';
   }
