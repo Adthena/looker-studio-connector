@@ -17,6 +17,15 @@ function transformTime(time) {
   return time.replaceAll(':', '');
 }
 
+function transformDateTime(dateTime) {
+  const replaced = dateTime
+    .replaceAll('-', '')
+    .replaceAll(':', '')
+    .replaceAll('T', '');
+  const dotIndex = replaced.indexOf('.');
+  return dotIndex === -1 ? replaced : replaced.substring(0, dotIndex);
+}
+
 /**
  * Parses a date in DD-MM-YYYY format. This is account dependent and
  * is waiting for a fix in the API to make it consistent regardless of account settings.

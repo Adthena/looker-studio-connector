@@ -296,6 +296,9 @@ const IS_CURRENT = 'isCurrent'; // boolean filter for ads last seen in last 7 da
 const AD_TEXT = 'adText'; // text filter to include ads containing specific text
 const EXCLUDED_AD_TEXT = 'excludedAdText'; // text filter to exclude ads containing specific text
 const AD_ID = 'adId'; // filter by specific ad IDs
+// infringements specific
+const RULE_ID_V2 = 'ruleIdV2'; // filter by specific rule IDs
+const EXCLUDED_RULE_ID_V2 = 'excludedRuleIdV2'; // exclude specific rule IDs
 
 // end: filter ids
 
@@ -478,6 +481,31 @@ const TOP_ADS_V2_OPTIONS = new DatasetOptions(
     ]
   )
 );
+
+const INFRINGEMENTS_V2 = 'infringements_v2';
+const INFRINGEMENTS_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Infringement Tracker', 'infringements-tracker-v2'),
+    new MenuOption('Trademark Takedown', 'infringements-takedown-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(ORDER_BY, [
+        new SelectOption('Rule Name', 'name'),
+        new SelectOption('Search Term', 'search_term'),
+        new SelectOption('Date Time', 'date_time')
+      ]),
+      new FilterOption(ORDER_DIRECTION),
+      new FilterOption(RULE_ID_V2),
+      new FilterOption(EXCLUDED_RULE_ID_V2)
+    ]
+  )
+);
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -524,6 +552,9 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'top-pla': new EndpointWithFilters('google-shopping/v2'),
   // infringements
   'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker'),
+  // infringements v2
+  'infringements-tracker-v2': new EndpointWithFilters('infringements', 'type=infringement_tracker'),
+  'infringements-takedown-v2': new EndpointWithFilters('infringements', 'type=trademark_takedown'),
   // brand activator
   'ba-daily-savings': new EndpointWithFilters('brand-activator/daily-savings'),
   'ba-activity-logs': new EndpointWithFilters('brand-activator/activity-logs')
@@ -569,6 +600,8 @@ function getOptionsForDatasetType(datasetType) {
       return TOP_ADS_V2_OPTIONS;
     case INFRINGEMENTS:
       return INFRINGEMENTS_OPTIONS;
+    case INFRINGEMENTS_V2:
+      return INFRINGEMENTS_V2_OPTIONS;
     case BRAND_ACTIVATOR:
       return BRAND_ACTIVATOR_OPTIONS;
     default:
@@ -587,5 +620,5 @@ function isSegmentedDataset(datasetType) {
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2].includes(datasetType);
 }

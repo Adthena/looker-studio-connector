@@ -45,6 +45,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL_V2))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES_V2))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS_V2))
+    .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
@@ -55,13 +56,13 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities (Deprecated)').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts (Deprecated)').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
-    .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS))
+    .addOption(config.newOptionBuilder().setLabel('Infringements (Deprecated)').setValue(INFRINGEMENTS))
     .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS, INFRINGEMENTS].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -376,6 +377,22 @@ function addConfigOptions(config, filterOptions) {
           .setId('adId')
           .setName('Ad ID')
           .setHelpText('A comma-separated list of ad IDs.')
+          .setAllowOverride(true);
+        break;
+      case RULE_ID_V2:
+        config
+          .newTextInput()
+          .setId('ruleIdV2')
+          .setName('Rule IDs')
+          .setHelpText('A comma-separated list of rule IDs to include.')
+          .setAllowOverride(true);
+        break;
+      case EXCLUDED_RULE_ID_V2:
+        config
+          .newTextInput()
+          .setId('excludedRuleIdV2')
+          .setName('Excluded Rule IDs')
+          .setHelpText('A comma-separated list of rule IDs to exclude.')
           .setAllowOverride(true);
         break;
       default:
@@ -1237,6 +1254,18 @@ function getTopAdsV2Fields() {
     .setName('Average Position')
     .setType(types.NUMBER);
 
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
   return fields;
 }
 
@@ -1448,6 +1477,110 @@ function getInfringementsFields() {
   return fields;
 }
 
+function getInfringementsV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('id')
+    .setName('Infringement ID')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('name')
+    .setName('Rule Name')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('search_term')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('date_time')
+    .setName('Date & Time')
+    .setType(types.YEAR_MONTH_DAY_SECOND);
+
+  fields
+    .newDimension()
+    .setId('position')
+    .setName('Position')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('title')
+    .setName('Title')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('description1')
+    .setName('Description 1')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('description2')
+    .setName('Description 2')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('display_url')
+    .setName('Display URL')
+    .setType(types.URL);
+
+  fields
+    .newDimension()
+    .setId('destination_url')
+    .setName('Destination URL')
+    .setType(types.URL);
+
+  fields
+    .newDimension()
+    .setId('click_url')
+    .setName('Click URL')
+    .setType(types.URL);
+
+  fields
+    .newDimension()
+    .setId('evidence_link')
+    .setName('Evidence Link')
+    .setType(types.URL);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getBrandActivatorFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
@@ -1636,6 +1769,9 @@ function getFields(request) {
     case INFRINGEMENTS:
       fields = getInfringementsFields();
       break;
+    case INFRINGEMENTS_V2:
+      fields = getInfringementsV2Fields();
+      break;
     case BRAND_ACTIVATOR:
       // sub-switch for BA as endpoints come with different models
       // TODO: Cleanup and reuse virtual endpoint strings.
@@ -1757,7 +1893,9 @@ function getData(request) {
           .withAdditionalFilters('is_current', configParams.isCurrent)
           .withAdditionalFilters('ad_text', configParams.adText)
           .withAdditionalFilters('excluded_ad_text', configParams.excludedAdText)
-          .withAdditionalFilters('ad_id', configParams.adId);
+          .withAdditionalFilters('ad_id', configParams.adId)
+          .withAdditionalFilters('rule_id', configParams.ruleIdV2)
+          .withAdditionalFilters('excluded_rule_id', configParams.excludedRuleIdV2);
       } else {
         endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
           .withAdditionalFilters('device', device)
@@ -2107,6 +2245,22 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.search_terms;
     case 'best_position':
       return outer.best_position;
+    case 'id':
+      return outer.id;
+    case 'name':
+      return outer.name;
+    case 'position':
+      return outer.position;
+    case 'date_time':
+      return transformDateTime(outer.date_time);
+    case 'display_url':
+      return outer.display_url;
+    case 'destination_url':
+      return outer.destination_url;
+    case 'click_url':
+      return outer.click_url;
+    case 'evidence_link':
+      return outer.evidence_link;
     default:
       return '';
   }
