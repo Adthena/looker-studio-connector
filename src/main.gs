@@ -44,6 +44,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail').setValue(ST_DETAIL_V2))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL_V2))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES_V2))
+    .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
@@ -52,7 +53,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Search Term Detail (Deprecated)').setValue(ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail (Deprecated)').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities (Deprecated)').setValue(ST_OPPORTUNITIES))
-    .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS))
+    .addOption(config.newOptionBuilder().setLabel('Top Adverts (Deprecated)').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS))
     .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR));
@@ -60,7 +61,7 @@ function getConfig(request) {
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -142,6 +143,16 @@ function addConfigOptions(config, filterOptions) {
           .setHelpText('Select one or more ad types.')
           .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('textad'))
           .addOption(config.newOptionBuilder().setLabel('PLA').setValue('pla'))
+          .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
+          .setAllowOverride(true);
+        break;
+      case AD_TYPE_TOP_ADS_V2:
+        config
+          .newSelectMultiple()
+          .setId('adTypeV2')
+          .setName("Ad Type")
+          .setHelpText('Select one or more ad types.')
+          .addOption(config.newOptionBuilder().setLabel('Text Ad').setValue('textad'))
           .addOption(config.newOptionBuilder().setLabel('Organic').setValue('organic'))
           .setAllowOverride(true);
         break;
@@ -325,6 +336,46 @@ function addConfigOptions(config, filterOptions) {
           .setHelpText('Sort direction for search term detail results.')
           .addOption(config.newOptionBuilder().setLabel('Ascending').setValue('asc'))
           .addOption(config.newOptionBuilder().setLabel('Descending').setValue('desc'))
+          .setAllowOverride(true);
+        break;
+      case IS_NEW:
+        config
+          .newCheckbox()
+          .setId('isNew')
+          .setName('Is New')
+          .setHelpText('Filter for ads first seen in the last 7 days.')
+          .setAllowOverride(true);
+        break;
+      case IS_CURRENT:
+        config
+          .newCheckbox()
+          .setId('isCurrent')
+          .setName('Is Current')
+          .setHelpText('Filter for ads last seen in the last 7 days.')
+          .setAllowOverride(true);
+        break;
+      case AD_TEXT:
+        config
+          .newTextInput()
+          .setId('adText')
+          .setName('Ad Text')
+          .setHelpText('A comma-separated list of text to include in ads.')
+          .setAllowOverride(true);
+        break;
+      case EXCLUDED_AD_TEXT:
+        config
+          .newTextInput()
+          .setId('excludedAdText')
+          .setName('Excluded Ad Text')
+          .setHelpText('A comma-separated list of text to exclude from ads.')
+          .setAllowOverride(true);
+        break;
+      case AD_ID:
+        config
+          .newTextInput()
+          .setId('adId')
+          .setName('Ad ID')
+          .setHelpText('A comma-separated list of ad IDs.')
           .setAllowOverride(true);
         break;
       default:
@@ -1091,6 +1142,104 @@ function getTopAdsFields() {
   return fields;
 }
 
+function getTopAdsV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('ad_id')
+    .setName('Ad ID')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('ad_type')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('title')
+    .setName('Title')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('display_text')
+    .setName('Display Text')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('description1')
+    .setName('Description 1')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('description2')
+    .setName('Description 2')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('frequency')
+    .setName('Frequency')
+    .setType(types.PERCENT);
+
+  fields
+    .newDimension()
+    .setId('first_seen')
+    .setName('First Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('last_seen')
+    .setName('Last Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newMetric()
+    .setId('estimated_impressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('search_terms')
+    .setName('Search Terms')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('best_position')
+    .setName('Best Position')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('average_position')
+    .setName('Average Position')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getTopPlasFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
@@ -1478,6 +1627,9 @@ function getFields(request) {
     case TOP_ADS:
       fields = getTopAdsFields();
       break;
+    case TOP_ADS_V2:
+      fields = getTopAdsV2Fields();
+      break;
     case TOP_PLAS:
       fields = getTopPlasFields();
       break;
@@ -1600,7 +1752,12 @@ function getData(request) {
           .withAdditionalFilters('order_direction', configParams.orderDirection)
           .withAdditionalFilters('page', configParams.pageV2)
           .withAdditionalFilters('page_size', configParams.pageSizeV2)
-          .withAdditionalFilters('max_number_of_domains', configParams.maxDomains);
+          .withAdditionalFilters('max_number_of_domains', configParams.maxDomains)
+          .withAdditionalFilters('is_new', configParams.isNew)
+          .withAdditionalFilters('is_current', configParams.isCurrent)
+          .withAdditionalFilters('ad_text', configParams.adText)
+          .withAdditionalFilters('excluded_ad_text', configParams.excludedAdText)
+          .withAdditionalFilters('ad_id', configParams.adId);
       } else {
         endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
           .withAdditionalFilters('device', device)
@@ -1930,6 +2087,26 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.max_cpc;
     case 'total_clicks':
       return outer.total_clicks;
+    case 'ad_id':
+      return outer.ad_id;
+    case 'title':
+      return outer.title;
+    case 'display_text':
+      return outer.display_text;
+    case 'description1':
+      return outer.description1;
+    case 'description2':
+      return outer.description2;
+    case 'frequency':
+      return outer.frequency;
+    case 'first_seen':
+      return transformDate(outer.first_seen);
+    case 'last_seen':
+      return transformDate(outer.last_seen);
+    case 'search_terms':
+      return outer.search_terms;
+    case 'best_position':
+      return outer.best_position;
     default:
       return '';
   }

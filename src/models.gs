@@ -278,6 +278,7 @@ const DEFAULTS_V2 = {
 // basic
 const DEVICE_V2 = 'deviceV2';
 const AD_TYPE_V2 = 'adTypeV2';
+const AD_TYPE_TOP_ADS_V2 = 'adTypeTopAdsV2'; // for top ads - only textad and organic
 const IS_WHOLE_MARKET_V2 = 'isWholeMarketV2';
 const SEGMENT_BY = 'segmentBy'; // device or ad_type. Supports multiple.
 const PAGE_V2 = 'pageV2';
@@ -289,6 +290,12 @@ const FILTERING_OPTIONS = 'filteringOptions'; // relative (default), absolute
 const TIME_PERIOD = 'timePeriod'; // daily, weekly, monthly
 const ORDER_BY = 'orderBy'; // for search term detail
 const ORDER_DIRECTION = 'orderDirection'; // asc, desc
+// top ads specific
+const IS_NEW = 'isNew'; // boolean filter for ads first seen in last 7 days
+const IS_CURRENT = 'isCurrent'; // boolean filter for ads last seen in last 7 days
+const AD_TEXT = 'adText'; // text filter to include ads containing specific text
+const EXCLUDED_AD_TEXT = 'excludedAdText'; // text filter to exclude ads containing specific text
+const AD_ID = 'adId'; // filter by specific ad IDs
 
 // end: filter ids
 
@@ -437,6 +444,40 @@ const ST_OPPORTUNITIES_V2_OPTIONS = new DatasetOptions(
     ]
   )
 );
+
+const TOP_ADS_V2 = 'top_ads_v2';
+const TOP_ADS_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Top Adverts', 'top-ads-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(AD_TYPE_TOP_ADS_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(FILTERING_OPTIONS),
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(ORDER_BY, [
+        new SelectOption('Frequency', 'frequency'),
+        new SelectOption('Estimated Impressions', 'estimated_impressions')
+      ]),
+      new FilterOption(ORDER_DIRECTION),
+      new FilterOption(IS_NEW),
+      new FilterOption(IS_CURRENT),
+      new FilterOption(AD_TEXT),
+      new FilterOption(EXCLUDED_AD_TEXT),
+      new FilterOption(AD_ID),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
+    ]
+  )
+);
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -477,6 +518,8 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'search-term-opportunities-v2-7': new EndpointWithFilters('search-term-opportunities', 'opportunities_segment=underperforming_adwords_terms'),
   // top ads
   'top-adverts': new EndpointWithFilters('top-adverts/all'),
+  // top ads v2
+  'top-ads-v2': new EndpointWithFilters('top-ads'),
   // top pla
   'top-pla': new EndpointWithFilters('google-shopping/v2'),
   // infringements
@@ -522,6 +565,8 @@ function getOptionsForDatasetType(datasetType) {
       return SEARCH_TERM_OPPORTUNITIES_OPTIONS;
     case ST_OPPORTUNITIES_V2:
       return ST_OPPORTUNITIES_V2_OPTIONS;
+    case TOP_ADS_V2:
+      return TOP_ADS_V2_OPTIONS;
     case INFRINGEMENTS:
       return INFRINGEMENTS_OPTIONS;
     case BRAND_ACTIVATOR:
@@ -542,5 +587,5 @@ function isSegmentedDataset(datasetType) {
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2].includes(datasetType);
 }
