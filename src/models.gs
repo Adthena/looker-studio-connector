@@ -271,7 +271,9 @@ const BRAND_ACTIVATOR_OPTIONS = new DatasetOptions(
 // start: API V2
 const DEFAULTS_V2 = {
   device: 'desktop',
-  adType: 'textad',
+  adType: function(datasetType) {
+    return datasetType === TOP_PLAS_V2 ? 'pla' : 'textad';
+  },
   isWholeMarket: 'true'
 };
 // start: filter ids
@@ -393,7 +395,6 @@ const ST_DETAIL_V2_OPTIONS = new DatasetOptions(
       new FilterOption(PAGE_SIZE_V2)
     ],
     [
-      new FilterOption(FILTERING_OPTIONS),
       new FilterOption(TIME_PERIOD),
       new FilterOption(ORDER_BY, [
         new SelectOption('Search Term', 'search_term'),
@@ -433,7 +434,6 @@ const ST_OPPORTUNITIES_V2_OPTIONS = new DatasetOptions(
       new FilterOption(PAGE_SIZE_V2)
     ],
     [
-      new FilterOption(FILTERING_OPTIONS),
       new FilterOption(TIME_PERIOD),
       new FilterOption(ORDER_BY, [
         new SelectOption('Search Term', 'search_term'),
@@ -462,7 +462,6 @@ const TOP_ADS_V2_OPTIONS = new DatasetOptions(
       new FilterOption(PAGE_SIZE_V2)
     ],
     [
-      new FilterOption(FILTERING_OPTIONS),
       new FilterOption(TIME_PERIOD),
       new FilterOption(ORDER_BY, [
         new SelectOption('Frequency', 'frequency'),
@@ -503,6 +502,35 @@ const INFRINGEMENTS_V2_OPTIONS = new DatasetOptions(
       new FilterOption(ORDER_DIRECTION),
       new FilterOption(RULE_ID_V2),
       new FilterOption(EXCLUDED_RULE_ID_V2)
+    ]
+  )
+);
+
+const TOP_PLAS_V2 = 'top_plas_v2';
+const TOP_PLAS_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Google Shopping', 'top-plas-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(IS_WHOLE_MARKET_V2),
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(ORDER_BY, [
+        new SelectOption('Frequency', 'frequency'),
+        new SelectOption('Estimated Impressions', 'estimated_impressions')
+      ]),
+      new FilterOption(ORDER_DIRECTION),
+      new FilterOption(AD_TEXT),
+      new FilterOption(EXCLUDED_AD_TEXT),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS),
+      new FilterOption(COMPETITOR_GROUPS),
+      new FilterOption(COMPETITORS)
     ]
   )
 );
@@ -550,6 +578,8 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'top-ads-v2': new EndpointWithFilters('top-ads'),
   // top pla
   'top-pla': new EndpointWithFilters('google-shopping/v2'),
+  // top pla v2
+  'top-plas-v2': new EndpointWithFilters('top-plas'),
   // infringements
   'infringement': new EndpointWithFilters('infringement/all', 'type=infringementTracker'),
   // infringements v2
@@ -592,6 +622,8 @@ function getOptionsForDatasetType(datasetType) {
       return TOP_ADS_OPTIONS;
     case TOP_PLAS:
       return TOP_PLAS_OPTIONS;
+    case TOP_PLAS_V2:
+      return TOP_PLAS_V2_OPTIONS;
     case ST_OPPORTUNITIES:
       return SEARCH_TERM_OPPORTUNITIES_OPTIONS;
     case ST_OPPORTUNITIES_V2:
@@ -620,5 +652,5 @@ function isSegmentedDataset(datasetType) {
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2, TOP_PLAS_V2].includes(datasetType);
 }

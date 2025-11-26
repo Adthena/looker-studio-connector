@@ -45,6 +45,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail').setValue(SEGMENTED_ST_DETAIL_V2))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities').setValue(ST_OPPORTUNITIES_V2))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS_V2))
+    .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS_V2))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
@@ -55,14 +56,14 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Segmented Search Term Detail (Deprecated)').setValue(SEGMENTED_ST_DETAIL))
     .addOption(config.newOptionBuilder().setLabel('Search Term Opportunities (Deprecated)').setValue(ST_OPPORTUNITIES))
     .addOption(config.newOptionBuilder().setLabel('Top Adverts (Deprecated)').setValue(TOP_ADS))
-    .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS))
+    .addOption(config.newOptionBuilder().setLabel('Google Shopping (Deprecated)').setValue(TOP_PLAS))
     .addOption(config.newOptionBuilder().setLabel('Infringements (Deprecated)').setValue(INFRINGEMENTS))
     .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS, INFRINGEMENTS].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS, INFRINGEMENTS, TOP_PLAS].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -1269,6 +1270,152 @@ function getTopAdsV2Fields() {
   return fields;
 }
 
+function getTopPlasV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('ad_id')
+    .setName('Ad ID')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('ad_type')
+    .setName('Ad Type')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('competitor')
+    .setName('Competitor')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('title')
+    .setName('Title')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('display_text')
+    .setName('Display Text')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('price')
+    .setName('Price')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('old_price')
+    .setName('Old Price')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('price_numeric')
+    .setName('Price (Numeric)')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('old_price_numeric')
+    .setName('Old Price (Numeric)')
+    .setType(types.NUMBER);
+
+  fields
+    .newDimension()
+    .setId('rating')
+    .setName('Rating')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('shopping_tag')
+    .setName('Shopping Tag')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('badge')
+    .setName('Badge')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('comparison_shopping_services')
+    .setName('Comparison Shopping Services')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('return_policy')
+    .setName('Return Policy')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('frequency')
+    .setName('Frequency')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('estimated_impressions')
+    .setName('Estimated Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newDimension()
+    .setId('first_seen')
+    .setName('First Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('last_seen')
+    .setName('Last Seen')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newMetric()
+    .setId('search_terms')
+    .setName('Search Terms')
+    .setType(types.NUMBER);
+
+  fields
+    .newDimension()
+    .setId('image')
+    .setName('Image')
+    .setType(types.URL);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getTopPlasFields() {
   var fields = cc.getFields();
   var types = cc.FieldType;
@@ -1766,6 +1913,9 @@ function getFields(request) {
     case TOP_PLAS:
       fields = getTopPlasFields();
       break;
+    case TOP_PLAS_V2:
+      fields = getTopPlasV2Fields();
+      break;
     case INFRINGEMENTS:
       fields = getInfringementsFields();
       break;
@@ -1822,7 +1972,7 @@ function validateConfig(configParams) {
   configParams.isWholeMarket = configParams.isWholeMarket || DEFAULTS.isWholeMarket;
   // V2 defaults
   configParams.deviceV2 = configParams.deviceV2 || DEFAULTS_V2.device;
-  configParams.adTypeV2 = configParams.adTypeV2 || DEFAULTS_V2.adType;
+  configParams.adTypeV2 = configParams.adTypeV2 || DEFAULTS_V2.adType(configParams.datasetType);
   configParams.isWholeMarketV2 = configParams.isWholeMarketV2 || DEFAULTS_V2.isWholeMarket;
   return configParams;
 }
@@ -2261,6 +2411,27 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.click_url;
     case 'evidence_link':
       return outer.evidence_link;
+    // top plas v2 specific fields
+    case 'price':
+      return outer.price;
+    case 'old_price':
+      return outer.old_price;
+    case 'price_numeric':
+      return outer.price_numeric;
+    case 'old_price_numeric':
+      return outer.old_price_numeric;
+    case 'rating':
+      return outer.rating;
+    case 'shopping_tag':
+      return outer.shopping_tag;
+    case 'badge':
+      return outer.badge;
+    case 'comparison_shopping_services':
+      return outer.comparison_shopping_services;
+    case 'return_policy':
+      return outer.return_policy;
+    case 'image':
+      return outer.image;
     default:
       return '';
   }
@@ -2338,6 +2509,10 @@ function getFormattedDataV2(response, requestedFields, segment) {
       );
     // market share and search term detail response - flat structure with direct fields
     } else if (outer.competitor !== undefined || outer.search_term !== undefined) {
+      row = fields.map(requestedField => getMappedDataV2(outer, outer, {}, requestedField, segment));
+      return [{ values: row }];
+    // top plas and top ads response - flat structure with ad_id
+    } else if (outer.ad_id !== undefined) {
       row = fields.map(requestedField => getMappedDataV2(outer, outer, {}, requestedField, segment));
       return [{ values: row }];
     } else {
