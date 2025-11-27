@@ -47,6 +47,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Top Adverts').setValue(TOP_ADS_V2))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS_V2))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS_V2))
+    .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
@@ -58,12 +59,12 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Top Adverts (Deprecated)').setValue(TOP_ADS))
     .addOption(config.newOptionBuilder().setLabel('Google Shopping (Deprecated)').setValue(TOP_PLAS))
     .addOption(config.newOptionBuilder().setLabel('Infringements (Deprecated)').setValue(INFRINGEMENTS))
-    .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR));
+    .addOption(config.newOptionBuilder().setLabel('Brand Activator (Deprecated)').setValue(BRAND_ACTIVATOR));
 
   if (!isFirstRequest) {
     if (configParams.datasetType === undefined) {
       cc.newUserError().setText('Please choose a dataset type first.').throwException();
-    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS, INFRINGEMENTS, TOP_PLAS].includes(configParams.datasetType)) {
+    } else if ([TREND, SEGMENTED_TREND, SHARE, SEGMENTED_SHARE, ST_DETAIL, SEGMENTED_ST_DETAIL, ST_OPPORTUNITIES, TOP_ADS, INFRINGEMENTS, TOP_PLAS, BRAND_ACTIVATOR].includes(configParams.datasetType)) {
       config
         .newInfo()
         .setId('deprecationWarning')
@@ -1840,6 +1841,112 @@ function getBrandActivatorLogsFields() {
   return fields;
 }
 
+function getBrandActivatorDailySavingsV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('search_term')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('date')
+    .setName('Date')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newDimension()
+    .setId('currency')
+    .setName('Currency')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('savings')
+    .setName('Savings')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('time_in_negative_list')
+    .setName('Time in Negative List')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_count')
+    .setName('Competitor Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
+function getBrandActivatorActivityLogV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('search_term')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('action')
+    .setName('Action')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('reason')
+    .setName('Reason')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('domains')
+    .setName('Domains')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('timestamp')
+    .setName('Timestamp')
+    .setType(types.YEAR_MONTH_DAY_SECOND);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
   var virtualEndpoint = request.configParams.apiEndpoint;
@@ -1935,6 +2042,23 @@ function getFields(request) {
         default:
           cc.newUserError()
             .setDebugText('Unknown virtual endpoint for brand activator: ' + virtualEndpoint)
+            .setText(
+              'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
+            )
+            .throwException();
+      }
+      break;
+    case BRAND_ACTIVATOR_V2:
+      switch(virtualEndpoint) {
+        case 'ba-daily-savings-v2':
+          fields = getBrandActivatorDailySavingsV2Fields();
+          break;
+        case 'ba-activity-log-v2':
+          fields = getBrandActivatorActivityLogV2Fields();
+          break;
+        default:
+          cc.newUserError()
+            .setDebugText('Unknown virtual endpoint for brand activator v2: ' + virtualEndpoint)
             .setText(
               'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
             )
@@ -2432,6 +2556,23 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.return_policy;
     case 'image':
       return outer.image;
+    // brand activator v2 specific fields
+    case 'savings':
+      return outer.savings;
+    case 'time_in_negative_list':
+      return outer.time_in_negative_list;
+    case 'competitor_count':
+      return outer.competitor_count;
+    case 'currency':
+      return outer.currency;
+    case 'action':
+      return outer.action;
+    case 'reason':
+      return outer.reason;
+    case 'domains':
+      return outer.domains;
+    case 'timestamp':
+      return transformDateTime(outer.timestamp);
     default:
       return '';
   }
@@ -2509,7 +2650,9 @@ function getFormattedDataV2(response, requestedFields, segment) {
       );
     // market share and search term detail response - flat structure with direct fields
     } else if (outer.competitor !== undefined || outer.search_term !== undefined) {
-      row = fields.map(requestedField => getMappedDataV2(outer, outer, {}, requestedField, segment));
+      // brand activator daily savings has date at outer level, pass it as point for date transformation
+      var point = outer.date ? { date: outer.date } : {};
+      row = fields.map(requestedField => getMappedDataV2(outer, outer, point, requestedField, segment));
       return [{ values: row }];
     // top plas and top ads response - flat structure with ad_id
     } else if (outer.ad_id !== undefined) {

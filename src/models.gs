@@ -534,6 +534,22 @@ const TOP_PLAS_V2_OPTIONS = new DatasetOptions(
     ]
   )
 );
+const BRAND_ACTIVATOR_V2 = 'brand_activator_v2';
+const BRAND_ACTIVATOR_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('Daily Savings', 'ba-daily-savings-v2'),
+    new MenuOption('Activity Log', 'ba-activity-log-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(PAGE_V2),
+      new FilterOption(PAGE_SIZE_V2)
+    ],
+    [
+      new FilterOption(SEARCH_TERMS)
+    ]
+  )
+);
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -585,9 +601,12 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   // infringements v2
   'infringements-tracker-v2': new EndpointWithFilters('infringements', 'type=infringement_tracker'),
   'infringements-takedown-v2': new EndpointWithFilters('infringements', 'type=trademark_takedown'),
-  // brand activator
+  // brand activator (deprecated)
   'ba-daily-savings': new EndpointWithFilters('brand-activator/daily-savings'),
-  'ba-activity-logs': new EndpointWithFilters('brand-activator/activity-logs')
+  'ba-activity-logs': new EndpointWithFilters('brand-activator/activity-logs'),
+  // brand activator v2
+  'ba-daily-savings-v2': new EndpointWithFilters('brand-activator-daily-savings'),
+  'ba-activity-log-v2': new EndpointWithFilters('brand-activator-activity-log')
 };
 
 function getOptionsForDatasetType(datasetType) {
@@ -636,6 +655,8 @@ function getOptionsForDatasetType(datasetType) {
       return INFRINGEMENTS_V2_OPTIONS;
     case BRAND_ACTIVATOR:
       return BRAND_ACTIVATOR_OPTIONS;
+    case BRAND_ACTIVATOR_V2:
+      return BRAND_ACTIVATOR_V2_OPTIONS;
     default:
       cc.newUserError()
         .setText('Please choose a valid dataset type.')
@@ -652,5 +673,5 @@ function isSegmentedDataset(datasetType) {
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2, TOP_PLAS_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2, TOP_PLAS_V2, BRAND_ACTIVATOR_V2].includes(datasetType);
 }
