@@ -12,9 +12,10 @@ function SelectOption(label, value) {
   return this;
 };
 
-function FilterOption(id, options) {
+function FilterOption(id, options, forbiddenEndpoints) {
   this.id = id;
   this.options = options; // optional array of SelectOption objects for dropdown filters
+  this.forbiddenEndpoints = forbiddenEndpoints; // array of virtual endpoints where this filter should not be shown
 
   return this;
 };
@@ -30,9 +31,10 @@ FilterOptionsConfig.prototype.isBasicDataset = function() {
   return this.advanced.length === 0; // basic datasets have noadvanced filtering
 };
 
-function DatasetOptions(menuOptions, filterOptions) {
+function DatasetOptions(menuOptions, filterOptions, isDynamicEndpoint = false) {
   this.menuOptions = menuOptions;
   this.filterOptions = filterOptions;
+  this.isDynamicEndpoint = isDynamicEndpoint;
 
   return this;
 };
@@ -550,6 +552,36 @@ const BRAND_ACTIVATOR_V2_OPTIONS = new DatasetOptions(
     ]
   )
 );
+
+const AI_OVERVIEW_V2 = 'ai_overview_v2';
+const AI_OVERVIEW_V2_OPTIONS = new DatasetOptions(
+  [
+    new MenuOption('AI Overview', 'ai-overview-v2'),
+    new MenuOption('AI Overview Search Terms', 'ai-overview-search-terms-v2')
+  ],
+  new FilterOptionsConfig(
+    [
+      new FilterOption(DEVICE_V2),
+      new FilterOption(SEGMENT_BY, [
+        new SelectOption('Device', 'device')
+      ]),
+      new FilterOption(PAGE_V2, null, ['ai-overview-v2']),
+      new FilterOption(PAGE_SIZE_V2, null, ['ai-overview-v2'])
+    ],
+    [
+      new FilterOption(TIME_PERIOD),
+      new FilterOption(ORDER_BY, [
+        new SelectOption('Search Term', 'search_term'),
+        new SelectOption('Impressions', 'impressions'),
+        new SelectOption('Frequency', 'frequency')
+      ], ['ai-overview-v2']),
+      new FilterOption(ORDER_DIRECTION, null, ['ai-overview-v2']),
+      new FilterOption(SEARCH_TERM_GROUPS),
+      new FilterOption(SEARCH_TERMS)
+    ]
+  ),
+  true
+);
 // end: API V2
 
 const VIRTUAL_ENDPOINT_MAPPINGS = {
@@ -606,7 +638,10 @@ const VIRTUAL_ENDPOINT_MAPPINGS = {
   'ba-activity-logs': new EndpointWithFilters('brand-activator/activity-logs'),
   // brand activator v2
   'ba-daily-savings-v2': new EndpointWithFilters('brand-activator-daily-savings'),
-  'ba-activity-log-v2': new EndpointWithFilters('brand-activator-activity-log')
+  'ba-activity-log-v2': new EndpointWithFilters('brand-activator-activity-log'),
+  // ai overview v2
+  'ai-overview-v2': new EndpointWithFilters('ai-overview'),
+  'ai-overview-search-terms-v2': new EndpointWithFilters('ai-overview/search-terms')
 };
 
 function getOptionsForDatasetType(datasetType) {
@@ -657,6 +692,8 @@ function getOptionsForDatasetType(datasetType) {
       return BRAND_ACTIVATOR_OPTIONS;
     case BRAND_ACTIVATOR_V2:
       return BRAND_ACTIVATOR_V2_OPTIONS;
+    case AI_OVERVIEW_V2:
+      return AI_OVERVIEW_V2_OPTIONS;
     default:
       cc.newUserError()
         .setText('Please choose a valid dataset type.')
@@ -673,5 +710,5 @@ function isSegmentedDataset(datasetType) {
 }
 
 function isV2ApiDataset(datasetType) {
-  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2, TOP_PLAS_V2, BRAND_ACTIVATOR_V2].includes(datasetType);
+  return [TREND_V2, SEGMENTED_TREND_V2, SHARE_V2, SEGMENTED_SHARE_V2, ST_DETAIL_V2, SEGMENTED_ST_DETAIL_V2, ST_OPPORTUNITIES_V2, TOP_ADS_V2, INFRINGEMENTS_V2, TOP_PLAS_V2, BRAND_ACTIVATOR_V2, AI_OVERVIEW_V2].includes(datasetType);
 }

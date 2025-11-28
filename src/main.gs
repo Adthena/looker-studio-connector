@@ -48,6 +48,7 @@ function getConfig(request) {
     .addOption(config.newOptionBuilder().setLabel('Google Shopping').setValue(TOP_PLAS_V2))
     .addOption(config.newOptionBuilder().setLabel('Infringements').setValue(INFRINGEMENTS_V2))
     .addOption(config.newOptionBuilder().setLabel('Brand Activator').setValue(BRAND_ACTIVATOR_V2))
+    .addOption(config.newOptionBuilder().setLabel('AI Overview').setValue(AI_OVERVIEW_V2))
     .addOption(config.newOptionBuilder().setLabel('Market Trends (Deprecated)').setValue(TREND))
     .addOption(config.newOptionBuilder().setLabel('Segmented Market Trends (Deprecated)').setValue(SEGMENTED_TREND))
     .addOption(config.newOptionBuilder().setLabel('Market Share (Deprecated)').setValue(SHARE))
@@ -77,6 +78,16 @@ function getConfig(request) {
       .setHelpText('The API endpoint gives you a choice of what data to pull into your report.');
     var endpointOptions = getOptionsForDatasetType(configParams.datasetType);
     endpointOptions.menuOptions.forEach(menuOption => endpoint.addOption(config.newOptionBuilder().setLabel(menuOption.label).setValue(menuOption.virtualEndpoint)));
+    // when the endpoint is dynamic, we need to reload the page to get the correct filter options
+    if (endpointOptions.isDynamicEndpoint) {
+      endpoint.setIsDynamic(true);
+      // if no endpoint is selected, don't render the rest of the page.
+      if (configParams.apiEndpoint === undefined) {
+        config.setIsSteppedConfig(true);
+
+        return config.build();
+      }
+    }
 
     if (isSegmentedDataset(configParams.datasetType)) {
       // enable advanced filtering when the user chooses a segmented dataset type and don't let the user remove it
@@ -92,9 +103,9 @@ function getConfig(request) {
       .setIsDynamic(true);
     }
 
-    addConfigOptions(config, endpointOptions.filterOptions.basic);
+    addConfigOptions(config, endpointOptions.filterOptions.basic, configParams.apiEndpoint);
     if (configParams.isAdvancedFiltering === 'true') {
-      addConfigOptions(config, endpointOptions.filterOptions.advanced);
+      addConfigOptions(config, endpointOptions.filterOptions.advanced, configParams.apiEndpoint);
     }
   }
 
@@ -103,8 +114,12 @@ function getConfig(request) {
   return config.build();
 }
 
-function addConfigOptions(config, filterOptions) {
+function addConfigOptions(config, filterOptions, virtualEndpoint) {
   filterOptions.forEach(filterOption => {
+    // Skip this filter if the current endpoint is in the forbidden list
+    if (filterOption.forbiddenEndpoints && filterOption.forbiddenEndpoints.includes(virtualEndpoint)) {
+      return;
+    }
     switch (filterOption.id) {
       case DEVICE:
         config
@@ -268,14 +283,23 @@ function addConfigOptions(config, filterOptions) {
           .setAllowOverride(true);
         break;
       case SEGMENT_BY:
-        config
+        var segmentBySelect = config
           .newSelectMultiple()
           .setId('segmentBy')
           .setName("Segment By")
-          .setHelpText('Select fields to segment data by.')
-          .addOption(config.newOptionBuilder().setLabel('Ad Type').setValue('ad_type'))
-          .addOption(config.newOptionBuilder().setLabel('Device').setValue('device'))
-          .setAllowOverride(true);
+          .setHelpText('Select fields to segment data by.');
+        if (filterOption.options && filterOption.options.length > 0) {
+          // Use custom options if provided
+          filterOption.options.forEach(option => {
+            segmentBySelect.addOption(config.newOptionBuilder().setLabel(option.label).setValue(option.value));
+          });
+        } else {
+          // Default options
+          segmentBySelect
+            .addOption(config.newOptionBuilder().setLabel('Ad Type').setValue('ad_type'))
+            .addOption(config.newOptionBuilder().setLabel('Device').setValue('device'));
+        }
+        segmentBySelect.setAllowOverride(true);
         break;
       case PRIMARY_DIMENSION:
         config
@@ -1947,6 +1971,193 @@ function getBrandActivatorActivityLogV2Fields() {
   return fields;
 }
 
+function getAiOverviewV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('date')
+    .setName('Date')
+    .setType(types.YEAR_MONTH_DAY);
+
+  fields
+    .newMetric()
+    .setId('overall_frequency')
+    .setName('Overall Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('local_intent_share')
+    .setName('Local Intent Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('investigational_intent_share')
+    .setName('Investigational Intent Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('seasonal_intent_share')
+    .setName('Seasonal Intent Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('problem_solving_intent_share')
+    .setName('Problem Solving Intent Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('transactional_intent_share')
+    .setName('Transactional Intent Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('navigational_intent_share')
+    .setName('Navigational Intent Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('one_two_word_appearances')
+    .setName('1-2 Word Appearances')
+    .setType(types.NUMBER)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('one_two_word_frequency')
+    .setName('1-2 Word Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('three_four_word_appearances')
+    .setName('3-4 Word Appearances')
+    .setType(types.NUMBER)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('three_four_word_frequency')
+    .setName('3-4 Word Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('five_six_word_appearances')
+    .setName('5-6 Word Appearances')
+    .setType(types.NUMBER)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('five_six_word_frequency')
+    .setName('5-6 Word Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('seven_plus_word_appearances')
+    .setName('7+ Word Appearances')
+    .setType(types.NUMBER)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('seven_plus_word_frequency')
+    .setName('7+ Word Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('appearances')
+    .setName('Appearances')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('frequency')
+    .setName('Frequency')
+    .setType(types.PERCENT);
+
+  return fields;
+}
+
+function getAiOverviewSearchTermsV2Fields() {
+  var fields = cc.getFields();
+  var types = cc.FieldType;
+  var aggregations = cc.AggregationType;
+
+  fields
+    .newDimension()
+    .setId('search_term')
+    .setName('Search Term')
+    .setType(types.TEXT);
+
+  fields
+    .newDimension()
+    .setId('device')
+    .setName('Device')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('impressions')
+    .setName('Impressions')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('frequency')
+    .setName('Frequency')
+    .setType(types.PERCENT);
+
+  fields
+    .newDimension()
+    .setId('intent')
+    .setName('Intent')
+    .setType(types.TEXT);
+
+  fields
+    .newMetric()
+    .setId('total_pages')
+    .setName('Total Pages')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('total_items')
+    .setName('Total Items')
+    .setType(types.NUMBER);
+
+  return fields;
+}
+
 function getFields(request) {
   var datasetType = request.configParams.datasetType;
   var virtualEndpoint = request.configParams.apiEndpoint;
@@ -2059,6 +2270,23 @@ function getFields(request) {
         default:
           cc.newUserError()
             .setDebugText('Unknown virtual endpoint for brand activator v2: ' + virtualEndpoint)
+            .setText(
+              'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
+            )
+            .throwException();
+      }
+      break;
+    case AI_OVERVIEW_V2:
+      switch(virtualEndpoint) {
+        case 'ai-overview-v2':
+          fields = getAiOverviewV2Fields();
+          break;
+        case 'ai-overview-search-terms-v2':
+          fields = getAiOverviewSearchTermsV2Fields();
+          break;
+        default:
+          cc.newUserError()
+            .setDebugText('Unknown virtual endpoint for ai overview v2: ' + virtualEndpoint)
             .setText(
               'The connector has encountered an unrecoverable error. Please try again later, or file an issue if this error persists.'
             )
@@ -2510,7 +2738,7 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
     case 'description2':
       return outer.description2;
     case 'frequency':
-      return outer.frequency;
+      return outer.frequency || point.frequency;
     case 'first_seen':
       return transformDate(outer.first_seen);
     case 'last_seen':
@@ -2573,6 +2801,43 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.domains;
     case 'timestamp':
       return transformDateTime(outer.timestamp);
+    // ai overview v2 specific fields
+    case 'overall_frequency':
+      return outer.overall_frequency;
+    case 'local_intent_share':
+      return outer.local_intent_share;
+    case 'investigational_intent_share':
+      return outer.investigational_intent_share;
+    case 'seasonal_intent_share':
+      return outer.seasonal_intent_share;
+    case 'problem_solving_intent_share':
+      return outer.problem_solving_intent_share;
+    case 'transactional_intent_share':
+      return outer.transactional_intent_share;
+    case 'navigational_intent_share':
+      return outer.navigational_intent_share;
+    case 'one_two_word_appearances':
+      return outer.one_two_word_appearances;
+    case 'one_two_word_frequency':
+      return outer.one_two_word_frequency;
+    case 'three_four_word_appearances':
+      return outer.three_four_word_appearances;
+    case 'three_four_word_frequency':
+      return outer.three_four_word_frequency;
+    case 'five_six_word_appearances':
+      return outer.five_six_word_appearances;
+    case 'five_six_word_frequency':
+      return outer.five_six_word_frequency;
+    case 'seven_plus_word_appearances':
+      return outer.seven_plus_word_appearances;
+    case 'seven_plus_word_frequency':
+      return outer.seven_plus_word_frequency;
+    case 'appearances':
+      return point.appearances;
+    case 'impressions':
+      return outer.impressions;
+    case 'intent':
+      return outer.intent;
     default:
       return '';
   }
@@ -2646,6 +2911,14 @@ function getFormattedDataV2(response, requestedFields, segment) {
               return { values: row };
             }
           )
+        }
+      );
+    // ai overview response - has time_series at outer level with overall metrics
+    } else if (outer.overall_frequency !== undefined && outer.time_series && Array.isArray(outer.time_series)) {
+      return outer.time_series.map(
+        function(point) {
+          row = fields.map(requestedField => getMappedDataV2(outer, outer, point, requestedField, segment));
+          return { values: row };
         }
       );
     // market share and search term detail response - flat structure with direct fields
