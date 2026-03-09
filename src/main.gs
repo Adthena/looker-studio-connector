@@ -2105,6 +2105,104 @@ function getAiOverviewV2Fields() {
     .setName('Frequency')
     .setType(types.PERCENT);
 
+  fields
+    .newMetric()
+    .setId('wmv_textad_non_aio_frequency')
+    .setName('WMV TextAd Non-AIO Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('wmv_textad_above_share')
+    .setName('WMV TextAd Above Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('wmv_textad_below_share')
+    .setName('WMV TextAd Below Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('wmv_pla_non_aio_frequency')
+    .setName('WMV PLA Non-AIO Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('wmv_pla_above_share')
+    .setName('WMV PLA Above Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('wmv_pla_below_share')
+    .setName('WMV PLA Below Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_textad_non_aio_frequency')
+    .setName('Premium TextAd Non-AIO Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_textad_above_share')
+    .setName('Premium TextAd Above Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_textad_below_share')
+    .setName('Premium TextAd Below Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_textad_inside_share')
+    .setName('Premium TextAd Inside Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_pla_non_aio_frequency')
+    .setName('Premium PLA Non-AIO Frequency')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_pla_above_share')
+    .setName('Premium PLA Above Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_pla_below_share')
+    .setName('Premium PLA Below Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
+  fields
+    .newMetric()
+    .setId('premium_pla_inside_share')
+    .setName('Premium PLA Inside Share')
+    .setType(types.PERCENT)
+    .setAggregation(aggregations.AVG);
+
   return fields;
 }
 
@@ -2838,9 +2936,47 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return outer.impressions;
     case 'intent':
       return outer.intent;
+    case 'wmv_textad_non_aio_frequency':
+      return getRelativePosition(outer, 'whole_market_view', 'textad', 'non_aio_frequency');
+    case 'wmv_textad_above_share':
+      return getRelativePosition(outer, 'whole_market_view', 'textad', 'above_share');
+    case 'wmv_textad_below_share':
+      return getRelativePosition(outer, 'whole_market_view', 'textad', 'below_share');
+    case 'wmv_pla_non_aio_frequency':
+      return getRelativePosition(outer, 'whole_market_view', 'pla', 'non_aio_frequency');
+    case 'wmv_pla_above_share':
+      return getRelativePosition(outer, 'whole_market_view', 'pla', 'above_share');
+    case 'wmv_pla_below_share':
+      return getRelativePosition(outer, 'whole_market_view', 'pla', 'below_share');
+    case 'premium_textad_non_aio_frequency':
+      return getRelativePosition(outer, 'premium', 'textad', 'non_aio_frequency');
+    case 'premium_textad_above_share':
+      return getRelativePosition(outer, 'premium', 'textad', 'above_share');
+    case 'premium_textad_below_share':
+      return getRelativePosition(outer, 'premium', 'textad', 'below_share');
+    case 'premium_textad_inside_share':
+      return getRelativePosition(outer, 'premium', 'textad', 'inside_share');
+    case 'premium_pla_non_aio_frequency':
+      return getRelativePosition(outer, 'premium', 'pla', 'non_aio_frequency');
+    case 'premium_pla_above_share':
+      return getRelativePosition(outer, 'premium', 'pla', 'above_share');
+    case 'premium_pla_below_share':
+      return getRelativePosition(outer, 'premium', 'pla', 'below_share');
+    case 'premium_pla_inside_share':
+      return getRelativePosition(outer, 'premium', 'pla', 'inside_share');
     default:
       return '';
   }
+}
+
+function getRelativePosition(outer, type, adType, metric) {
+  if (!outer.relative_positions || !Array.isArray(outer.relative_positions)) {
+    return '';
+  }
+  var entry = outer.relative_positions.find(function(p) {
+    return p.type === type && p.ad_type === adType;
+  });
+  return entry && entry[metric] !== undefined ? entry[metric] : '';
 }
 
 /**
