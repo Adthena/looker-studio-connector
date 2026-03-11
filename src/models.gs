@@ -294,6 +294,7 @@ const FILTERING_OPTIONS = 'filteringOptions'; // relative (default), absolute
 const TIME_PERIOD = 'timePeriod'; // daily, weekly, monthly
 const ORDER_BY = 'orderBy'; // for search term detail
 const ORDER_DIRECTION = 'orderDirection'; // asc, desc
+const TERM_TYPE = 'termType'; // wmv, premium - for AIO search terms
 // top ads specific
 const IS_NEW = 'isNew'; // boolean filter for ads first seen in last 7 days
 const IS_CURRENT = 'isCurrent'; // boolean filter for ads last seen in last 7 days
@@ -562,6 +563,7 @@ const AI_OVERVIEW_V2_OPTIONS = new DatasetOptions(
   new FilterOptionsConfig(
     [
       new FilterOption(DEVICE_V2),
+      new FilterOption(TERM_TYPE, null, ['ai-overview-v2']),
       new FilterOption(SEGMENT_BY, [
         new SelectOption('Device', 'device')
       ]),

@@ -421,6 +421,16 @@ function addConfigOptions(config, filterOptions, virtualEndpoint) {
           .setHelpText('A comma-separated list of rule IDs to exclude.')
           .setAllowOverride(true);
         break;
+      case TERM_TYPE:
+        config
+          .newSelectMultiple()
+          .setId('termType')
+          .setName('Term Type')
+          .setHelpText('Filter by term type. Only applicable for premium accounts.')
+          .addOption(config.newOptionBuilder().setLabel('WMV').setValue('wmv'))
+          .addOption(config.newOptionBuilder().setLabel('Premium').setValue('premium'))
+          .setAllowOverride(true);
+        break;
       default:
         cc.newUserError()
           .setDebugText('Unknown filter id: ' + filterOption.id)
@@ -2242,6 +2252,138 @@ function getAiOverviewSearchTermsV2Fields() {
     .setType(types.TEXT);
 
   fields
+    .newDimension()
+    .setId('term_type')
+    .setName('Term Type')
+    .setType(types.TEXT);
+
+  // Account Text Ad position shares
+  fields
+    .newMetric()
+    .setId('account_textad_above_share')
+    .setName('Account Text Ad Above Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('account_textad_below_share')
+    .setName('Account Text Ad Below Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('account_textad_inside_share')
+    .setName('Account Text Ad Inside Share')
+    .setType(types.PERCENT);
+
+  // Competitor Text Ad position shares
+  fields
+    .newMetric()
+    .setId('competitor_textad_above_share')
+    .setName('Competitor Text Ad Above Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('competitor_textad_below_share')
+    .setName('Competitor Text Ad Below Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('competitor_textad_inside_share')
+    .setName('Competitor Text Ad Inside Share')
+    .setType(types.PERCENT);
+
+  // Competitor Text Ad domain counts
+  fields
+    .newMetric()
+    .setId('competitor_textad_domains_above_count')
+    .setName('Competitor Text Ad Domains Above Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_textad_domains_below_count')
+    .setName('Competitor Text Ad Domains Below Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_textad_domains_inside_count')
+    .setName('Competitor Text Ad Domains Inside Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_textad_domains_total_count')
+    .setName('Competitor Text Ad Domains Total Count')
+    .setType(types.NUMBER);
+
+  // Account PLA position shares
+  fields
+    .newMetric()
+    .setId('account_pla_above_share')
+    .setName('Account PLA Above Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('account_pla_below_share')
+    .setName('Account PLA Below Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('account_pla_inside_share')
+    .setName('Account PLA Inside Share')
+    .setType(types.PERCENT);
+
+  // Competitor PLA position shares
+  fields
+    .newMetric()
+    .setId('competitor_pla_above_share')
+    .setName('Competitor PLA Above Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('competitor_pla_below_share')
+    .setName('Competitor PLA Below Share')
+    .setType(types.PERCENT);
+
+  fields
+    .newMetric()
+    .setId('competitor_pla_inside_share')
+    .setName('Competitor PLA Inside Share')
+    .setType(types.PERCENT);
+
+  // Competitor PLA domain counts
+  fields
+    .newMetric()
+    .setId('competitor_pla_domains_above_count')
+    .setName('Competitor PLA Domains Above Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_pla_domains_below_count')
+    .setName('Competitor PLA Domains Below Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_pla_domains_inside_count')
+    .setName('Competitor PLA Domains Inside Count')
+    .setType(types.NUMBER);
+
+  fields
+    .newMetric()
+    .setId('competitor_pla_domains_total_count')
+    .setName('Competitor PLA Domains Total Count')
+    .setType(types.NUMBER);
+
+  fields
     .newMetric()
     .setId('total_pages')
     .setName('Total Pages')
@@ -2495,7 +2637,8 @@ function getData(request) {
           .withAdditionalFilters('excluded_ad_text', configParams.excludedAdText)
           .withAdditionalFilters('ad_id', configParams.adId)
           .withAdditionalFilters('rule_id', configParams.ruleIdV2)
-          .withAdditionalFilters('excluded_rule_id', configParams.excludedRuleIdV2);
+          .withAdditionalFilters('excluded_rule_id', configParams.excludedRuleIdV2)
+          .withAdditionalFilters('term_type', configParams.termType);
       } else {
         endpointWithFilters = getEndpointWithFilters(configParams.apiEndpoint)
           .withAdditionalFilters('device', device)
@@ -2964,6 +3107,49 @@ function getMappedDataV2(outer, inner, point, requestedField, segment) {
       return getRelativePosition(outer, 'premium', 'pla', 'below_share');
     case 'premium_pla_inside_share':
       return getRelativePosition(outer, 'premium', 'pla', 'inside_share');
+    // ai overview search terms v2 premium fields
+    case 'term_type':
+      return outer.term_type;
+    case 'account_textad_above_share':
+      return outer.account_textad_above_share;
+    case 'account_textad_below_share':
+      return outer.account_textad_below_share;
+    case 'account_textad_inside_share':
+      return outer.account_textad_inside_share;
+    case 'competitor_textad_above_share':
+      return outer.competitor_textad_above_share;
+    case 'competitor_textad_below_share':
+      return outer.competitor_textad_below_share;
+    case 'competitor_textad_inside_share':
+      return outer.competitor_textad_inside_share;
+    case 'competitor_textad_domains_above_count':
+      return outer.competitor_textad_domains_above_count;
+    case 'competitor_textad_domains_below_count':
+      return outer.competitor_textad_domains_below_count;
+    case 'competitor_textad_domains_inside_count':
+      return outer.competitor_textad_domains_inside_count;
+    case 'competitor_textad_domains_total_count':
+      return outer.competitor_textad_domains_total_count;
+    case 'account_pla_above_share':
+      return outer.account_pla_above_share;
+    case 'account_pla_below_share':
+      return outer.account_pla_below_share;
+    case 'account_pla_inside_share':
+      return outer.account_pla_inside_share;
+    case 'competitor_pla_above_share':
+      return outer.competitor_pla_above_share;
+    case 'competitor_pla_below_share':
+      return outer.competitor_pla_below_share;
+    case 'competitor_pla_inside_share':
+      return outer.competitor_pla_inside_share;
+    case 'competitor_pla_domains_above_count':
+      return outer.competitor_pla_domains_above_count;
+    case 'competitor_pla_domains_below_count':
+      return outer.competitor_pla_domains_below_count;
+    case 'competitor_pla_domains_inside_count':
+      return outer.competitor_pla_domains_inside_count;
+    case 'competitor_pla_domains_total_count':
+      return outer.competitor_pla_domains_total_count;
     default:
       return '';
   }
